@@ -14,7 +14,7 @@
   #### Exchange: 0xCf08717E93386dEc86FaA2A98Bf3cB3BBA14061f
   #### Payback: 0xf80ebD37676D8C5DFF3DA0F780AbD34bd84D205B
 
-
+### lex和leo管理员方法有新增
 ### 用户方法列表
 #### router func list
 ```solidity
@@ -295,9 +295,10 @@ function setRate(uint256 _buy, uint256 _sell) external;
 function buyRate() external view returns(uint256);
 ////查询卖出手续费百分比
 function sellRate() external view returns(uint256);
-
+//管理员分发买入手续费比例
+function issueBuyTaxFee() external;
 ```
-#### lex合约
+#### leo合约
 ```solidity
 //查询管理员地址
 function owner() external view returns(address);
@@ -305,4 +306,8 @@ function owner() external view returns(address);
 function setRate(uint256 _buyRate) external;
 //查询买入手续费百分比，目前是100%，禁止买入
 function buyRate() external view returns(uint256);
+//管理员分发买入收手续费
+function issueBuyTaxFee() external;
+//管理员销毁每天0.5%
+function burnFromPair() external;
 ```
