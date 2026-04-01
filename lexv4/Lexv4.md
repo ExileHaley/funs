@@ -1,4 +1,4 @@
-### == contract address ==
+### == test contract address ==
   #### Lex token: 0xc03d0fe75A822734712AF30d1FA579d2b84B9fc7
   #### Lex`s pair: 0xbDBEe5778c8555D0a40229b7Ce214D89e4cC4785
   #### Leo token: 0x984c911647032F2cfb96E5Ee887d254d7aac974B
@@ -13,8 +13,23 @@
   #### Router: 0xA1845a3871f75e63d2b8b6e52e2F3DE0797aFe7E
   #### Exchange: 0xCf08717E93386dEc86FaA2A98Bf3cB3BBA14061f
   #### Payback: 0xf80ebD37676D8C5DFF3DA0F780AbD34bd84D205B
-
-### lex和leo管理员方法有新增
+==================================================================================================================
+### == final test version ==
+  #### Lex token: 0x975c6B9A2D8755e33C99042348150b4D2cA5163B
+  #### Lex`s pair: 0xe6DA957092Dc3b64B5Af689A935128423468667C
+  #### Leo token: 0x238Ac53Be4cC0936Eb2AdAA2Cda2429723C6Da83
+  #### Leo`s pair: 0xF2187B9F6D6216C291aaB84762E092a8C1661422
+  #### USDT test token: 0x55d398326f99059fF775485246999027B3197955
+  =========================================================
+  #### Treasury: 0x18f285cd6d75caDf2eA44f74FDcD5d3368898117
+  #### TreasuryLiquidity: 0xb8C3D9157e8a30cF4DAC519704f3d3302656B5d0
+  #### NodeDividends: 0xD0c3E7c81B09f0C44ed5521De360F26Aa04ceb8A
+  #### Queue: 0x1AeF06CFEAC82aE4e3FAA18a282FD6A306B786A1
+  #### Referrals: 0x71f014e4aFEf2e30cdA7b6f2Aee08ccC035566a8
+  #### Router: 0xa16EC857AbB697eaFADB8C7bBdd13B193786244A
+  #### Exchange: 0x3866882De8A78D4e685d1b9C0808bc8854FD0e4c
+  #### Payback: 0x97F23F6f0aEC7A6f04680473cDA9d0520EA8f6d5
+  =========================================================
 ### 用户方法列表
 #### router func list
 ```solidity
