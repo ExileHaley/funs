@@ -1,4 +1,4 @@
-### == test contract address ==
+### == online contract address ==
   #### Lex token: 0xBf9CfFd9523b8F9808058321e3521121c1194bad
   #### Lex`s pair: 0x22C98318c5cd13B842e8E65Cfc89A56e6ff51172
   #### Leo token: 0xc9ADcCAa0984796431E3352cb7423e2309357ba9
