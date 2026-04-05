@@ -1,18 +1,18 @@
 ### == test contract address ==
-  #### Lex token: 0xc03d0fe75A822734712AF30d1FA579d2b84B9fc7
-  #### Lex`s pair: 0xbDBEe5778c8555D0a40229b7Ce214D89e4cC4785
-  #### Leo token: 0x984c911647032F2cfb96E5Ee887d254d7aac974B
-  #### Leo`s pair: 0x30d16ACf563dD68A519cAfB81991500a93CC4bA7
+  #### Lex token: 0xBf9CfFd9523b8F9808058321e3521121c1194bad
+  #### Lex`s pair: 0x22C98318c5cd13B842e8E65Cfc89A56e6ff51172
+  #### Leo token: 0xc9ADcCAa0984796431E3352cb7423e2309357ba9
+  #### Leo`s pair: 0x284E03fC6c8364E3147ADA4d457cB2763677d895
   #### USDT test token: 0x55d398326f99059fF775485246999027B3197955
   =========================================================
-  #### Treasury: 0xCF479D3861297c6E5B5994E1d1c2cbA8639d5926
-  #### TreasuryLiquidity: 0x4376B7f036194c5e2feDE3D7e65E5476C9567C8F
-  #### NodeDividends: 0x9B0325002b9F6ed38BFdD8222DE35Fb0F932Ab71
-  #### Queue: 0x38f23a3A44FBb06d5418Ca06E731F9b66b9D7AA2
-  #### Referrals: 0x388b20b21C8c2A59E2A4944D42B02112dF86C6d9
-  #### Router: 0xA1845a3871f75e63d2b8b6e52e2F3DE0797aFe7E
-  #### Exchange: 0xCf08717E93386dEc86FaA2A98Bf3cB3BBA14061f
-  #### Payback: 0xf80ebD37676D8C5DFF3DA0F780AbD34bd84D205B
+  #### Treasury: 0xA5cA72bE7bba63260b9BbF5a0A645D97D11E5D54
+  #### TreasuryLiquidity: 0xBDbd2D9040f000572710d91BEe669015DD7FbD01
+  #### NodeDividends: 0x18A749dc4488c46733F86Ef747edc0BA955B6cEc
+  #### Queue: 0xc816b2C2522EB06DBf36fFE902c3313F76B533E4
+  #### Referrals: 0x310e1E50b0f42Ade0898B14D83839da374697C06
+  #### Router: 0x3DcB9452D460321E0ba99a002C51a0Abf4E2D748
+  #### Exchange: 0xaf91451c13ABCA2480aC90EC59Efb450467FA179
+  #### Payback: 0x5B66C805BE6F14Ed9aAf6Bd7Abcc98fB6e659550
 ==================================================================================================================
 ### == final test version ==
   #### Lex token: 0x975c6B9A2D8755e33C99042348150b4D2cA5163B
