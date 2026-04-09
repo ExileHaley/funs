@@ -1,34 +1,18 @@
 ### == online contract address ==
-  #### Lex token: 0xBf9CfFd9523b8F9808058321e3521121c1194bad
-  #### Lex`s pair: 0x22C98318c5cd13B842e8E65Cfc89A56e6ff51172
-  #### Leo token: 0xc9ADcCAa0984796431E3352cb7423e2309357ba9
-  #### Leo`s pair: 0x284E03fC6c8364E3147ADA4d457cB2763677d895
+  #### Lex token: 0x4bE94DF7d6C4E7a481A9492F51694D7Ca4f5F853
+  #### Lex`s pair: 0x4F4f684aE867f479688b41590DC4205bF5bfa825
+  #### Leo token: 0xDf4fC288f976c8EAFc4f1e4938fE147887CA1dBB
+  #### Leo`s pair: 0x43e3aA78f0e3F539d6EaD42c0361Ff8CeFf97cDA
   #### USDT test token: 0x55d398326f99059fF775485246999027B3197955
   =========================================================
-  #### Treasury: 0xA5cA72bE7bba63260b9BbF5a0A645D97D11E5D54
-  #### TreasuryLiquidity: 0xBDbd2D9040f000572710d91BEe669015DD7FbD01
-  #### NodeDividends: 0x18A749dc4488c46733F86Ef747edc0BA955B6cEc
-  #### Queue: 0xc816b2C2522EB06DBf36fFE902c3313F76B533E4
-  #### Referrals: 0x310e1E50b0f42Ade0898B14D83839da374697C06
-  #### Router: 0x3DcB9452D460321E0ba99a002C51a0Abf4E2D748
-  #### Exchange: 0xaf91451c13ABCA2480aC90EC59Efb450467FA179
-  #### Payback: 0x5B66C805BE6F14Ed9aAf6Bd7Abcc98fB6e659550
-==================================================================================================================
-### == final test version ==
-  #### Lex token: 0x975c6B9A2D8755e33C99042348150b4D2cA5163B
-  #### Lex`s pair: 0xe6DA957092Dc3b64B5Af689A935128423468667C
-  #### Leo token: 0x238Ac53Be4cC0936Eb2AdAA2Cda2429723C6Da83
-  #### Leo`s pair: 0xF2187B9F6D6216C291aaB84762E092a8C1661422
-  #### USDT test token: 0x55d398326f99059fF775485246999027B3197955
-  =========================================================
-  #### Treasury: 0x18f285cd6d75caDf2eA44f74FDcD5d3368898117
-  #### TreasuryLiquidity: 0xb8C3D9157e8a30cF4DAC519704f3d3302656B5d0
-  #### NodeDividends: 0xD0c3E7c81B09f0C44ed5521De360F26Aa04ceb8A
-  #### Queue: 0x1AeF06CFEAC82aE4e3FAA18a282FD6A306B786A1
-  #### Referrals: 0x71f014e4aFEf2e30cdA7b6f2Aee08ccC035566a8
-  #### Router: 0xa16EC857AbB697eaFADB8C7bBdd13B193786244A
-  #### Exchange: 0x3866882De8A78D4e685d1b9C0808bc8854FD0e4c
-  #### Payback: 0x97F23F6f0aEC7A6f04680473cDA9d0520EA8f6d5
+  #### Treasury: 0xd346A18988cDe3007b38823dBAe89966076f3013
+  #### TreasuryLiquidity: 0x614B8BFAd8d80C551E141a2E83eCD07639034fC4
+  #### NodeDividends: 0x6Fb65DB687244EA1Fb01667Ae347AA024249Ff18
+  #### Queue: 0x8152bdB732d8d2d3BEe29cD7B93278455F359612
+  #### Referrals: 0x5e52477D7e3f5de4D0cD71c351FBC61E08e873B1
+  #### Router: 0xf1DBEBf837019e6d6c670c5c242b35D3758bF531
+  #### Exchange: 0x9f048380efE9639b798D42e157110C752C197bCd
+  #### Payback: 0x023888fB3bdB3b8bcc2955965Fc89779A1ded689
   =========================================================
 ### 用户方法列表
 #### router func list
