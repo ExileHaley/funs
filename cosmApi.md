@@ -637,19 +637,3 @@ export const VAULT_FACTORY = {
 } as const;
 ```
 
-Solidity 类型见 `contracts/CosmTypes.sol`。
-
-## 获取 ABI JSON
-
-```bash
-# 接口 ABI（默认 profile）
-forge build src/interfaces/
-mkdir -p abi
-jq '.abi' out/IPortal.sol/IPortal.json > abi/IPortal.json
-jq '.abi' out/IVaultPortal.sol/IVaultPortal.json > abi/IVaultPortal.json
-
-# 完整实现 ABI（含 vault 实例）
-FOUNDRY_PROFILE=cosm forge build
-# out-cosm/CosmPortal.sol/CosmPortal.json
-# out-cosm/CosmSplitVault.sol/CosmSplitVault.json 等
-```
