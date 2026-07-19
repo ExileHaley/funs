@@ -6,23 +6,23 @@
 
 ## 合约地址
 
-> 2026-07-20 部署。旧 UUPS（`0xf954…` / `0xF7D1…`）已废弃。
+> 2026-07-20 重部署（Transparent + ProxyAdmin）。旧地址（`0x8ADab…` / `0x6CB77…`）已废弃。
 
 | 合约 | 地址 | 用途 |
 |------|------|------|
-| ProxyAdmin | `0xA1f85d13e55B9CeB6Dc295157A06944ea5fdCFE9` | 升级管理（勿当业务入口） |
-| CosmPortal **proxy** | `0x8ADab64A1A62bEa555CAe71A8061E10cE9d639F1` | 发币、曲线买卖、状态查询、迁移 |
-| CosmPortal impl | `0xFEa31e0Cb6b718b30952c225fb1F274148587B09` | 实现（勿直接调用） |
-| CosmVaultPortal **proxy** | `0x6CB77C7Cdf15153D9F31b89305875E90D6BB895C` | 税收币路径 B / 未上架 clone |
-| CosmVaultPortal impl | `0x777Eb0Ff8f11D53F4b6eaCFF25276445E5216e71` | 实现（勿直接调用） |
-| CosmTriggerService **proxy** | `0x7277712198e66A3B4A7c0e84062961f44CEe07f7` | 服务端延期回调（gasFee=`0.001` BNB） |
-| CosmTriggerService impl | `0xa05967AB812e18684fCf4843ee172D6C48f9E5DF` | 实现（勿直接调用） |
-| CosmToken impl | `0x2642fAa441d144EB59691924209662B09bf33Bfb` | 普通币 CREATE2 模板 |
-| CosmTaxToken impl | `0x680036C3068938c6BFD1268Ca6e63F2E7eD555d4` | 税收币 CREATE2 模板 |
-| CosmMigratorV2 | `0x4a942aD0E3A09b19258E6A614bfcD9a250a41688` | Tax → PCS V2 |
-| CosmMigratorV3 | `0xE94c15A927c056146fa946145ADE332d90c0aCC2` | Standard → PCS V3 |
-| CosmTaxSplitter impl | `0x39bc6ACd1B05eA530FF502560cA898099d09AA88` | 四路拆分模板 |
-| CosmDividend impl | `0xa971E416863f1423c0c35a3883c1b23672D681d5` | 持币分红模板 |
+| ProxyAdmin | `0xbD560b2a846Fb4dFC19b275a2655649182437840` | 升级管理（勿当业务入口） |
+| CosmPortal **proxy** | `0xD4c61F5A9E97A5E31584b05752524F201Cc8D3fF` | 发币、曲线买卖、状态查询、迁移 |
+| CosmPortal impl | `0x4A77Dc89584074d39C6EfeE8fac761E8f18E44a8` | 实现（勿直接调用） |
+| CosmVaultPortal **proxy** | `0x603D14499d5d4Cb927391ee5612B36f82E0eE83a` | 税收币路径 B（带金库发币） |
+| CosmVaultPortal impl | `0x4d7D38cEd16545C48F6C532eFd185554BDe4dBfa` | 实现（勿直接调用） |
+| CosmTriggerService **proxy** | `0xa4AC9850b5ff7CeA6EdB7C4324F4DCa0b5cE6e49` | 服务端延期回调（gasFee=`0.001` BNB） |
+| CosmTriggerService impl | `0xdC2228a6E3F68B036dEB7949718a5f4B47D4968b` | 实现（勿直接调用） |
+| CosmToken impl | `0xa12f1D3D81D14429eBD77e4e9fFDDBF64Db5f2e7` | 普通币 CREATE2 模板 |
+| CosmTaxToken impl | `0xb43E1AD68CC34A3e3afDd2139A1f9d1B7cE1483c` | 税收币 CREATE2 模板 |
+| CosmMigratorV2 | `0xEd330CaCE9CDf9949f7a6796ae54E7f7494654E4` | Tax → PCS V2 |
+| CosmMigratorV3 | `0xb0ed1ae4949999C7E27d3DD6f56cc3932c7bb556` | Standard → PCS V3 |
+| CosmTaxSplitter impl | `0xaD09d3fF847Dfa9f04962b5B23bA415836306Ccd` | 四路拆分模板 |
+| CosmDividend impl | `0x3bd46B361176fa332e4eE9E479fCca101eb2cc62` | 持币分红模板 |
 
 ### Quote 白名单
 
@@ -51,7 +51,6 @@
 | 发普通币 | `Portal.newTokenV7` | `isTaxed=false` |
 | 发税收币 · 税进钱包 | `Portal.newTokenV6` | 路径 A，`beneficiary`=钱包 |
 | 发税收币 · mkt 进金库 | `VaultPortal.newTokenV6WithVault` | 路径 B；内部再调 Portal |
-| 未上架按模板 clone | `VaultPortal.previewCloneFromToken` → `newTokenV6CloneFrom` | 源币须已挂金库 |
 | 列表 / 行情 | `Portal.getTokenV8Safe` | 高频轻量 |
 | 详情扩展 | `Portal.getToken` | `taxSplitter` / `dividend` / `vault` / `feeProfile` |
 | 曲线报价 / 买卖 | `Portal.quoteExactInput` / `swapExactInput` | 仅 `status=Tradable` |
@@ -329,10 +328,6 @@ struct TokenStateV8Safe {
 | `vaultFactory` | `address` | 已注册且 `enabled` 的工厂（见工厂地址表） |
 | `vaultData` | `bytes` | 按该工厂 `vaultDataSchema()` 编码 |
 
-#### `NewTokenV6CloneFromParams` — `VaultPortal.newTokenV6CloneFrom`
-
-字段与上表相同，**无** `vaultFactory`（从 `sourceToken` 解析）。发币前先 `previewCloneFromToken(source)`。
-
 #### `VaultInfo` — `getVault` / `tryGetVault`
 
 | 字段 | 类型 | 前端备注 |
@@ -340,7 +335,7 @@ struct TokenStateV8Safe {
 | `vault` | `address` | 金库实例；未绑定=`0` |
 | `isOfficial` | `bool` | 发币时快照：是否官方工厂 |
 | `riskLevel` | `RiskLevel` | `0` UNVERIFIED · `1` LOW · `2` MEDIUM · `3` HIGH |
-| `category` | `VaultCategory` | `0` NONE · `1` SPLIT · `2` BUYBACK · `3` DIVIDEND · `4` AIRDROP · `5` GAME |
+| `category` | `VaultCategory` | `0` NONE · `1` SPLIT · `2` BUYBACK · `3` DIVIDEND · `4` AIRDROP（legacy） · `5` GAME |
 | `vaultFactory` | `address` | 创建该金库的工厂 |
 
 #### `VaultFactoryInfo` — `getVaultFactory`
@@ -352,16 +347,6 @@ struct TokenStateV8Safe {
 | `official` | `bool` | UI「官方」标签 |
 | `riskLevel` | `RiskLevel` | 风险展示 |
 | `category` | `VaultCategory` | 分类筛选 |
-
-#### `TaxVaultTemplatePreview` — `previewCloneFromToken`
-
-| 字段 | 类型 | 前端备注 |
-|------|------|----------|
-| `ok` | `bool` | `false` 则不可 clone |
-| `vault` / `vaultFactory` | `address` | 源模板 |
-| `vaultType` | `string` | 如 `"split"` |
-| `dataSchema` | `VaultDataSchema` | 克隆时填 `vaultData` 用 |
-| `uiSchema` | `VaultUISchema` | 操作区预览 |
 
 ### 金库 UI Schema 类型（`vaultDataSchema` / `vaultUISchema`）
 
@@ -422,8 +407,8 @@ export function findVanitySalt(opts: {
 ```
 
 ```bash
-python3 tools/find_vanity.py --predict --portal 0x8ADab64A1A62bEa555CAe71A8061E10cE9d639F1 --tax
-python3 tools/find_vanity.py --predict --portal 0x8ADab64A1A62bEa555CAe71A8061E10cE9d639F1
+python3 tools/find_vanity.py --predict --portal 0xD4c61F5A9E97A5E31584b05752524F201Cc8D3fF --tax
+python3 tools/find_vanity.py --predict --portal 0xD4c61F5A9E97A5E31584b05752524F201Cc8D3fF
 ```
 
 ### 2. 支付再发币
@@ -441,7 +426,7 @@ python3 tools/find_vanity.py --predict --portal 0x8ADab64A1A62bEa555CAe71A8061E1
 
 ## CosmPortal 方法
 
-地址（proxy）：`0x8ADab64A1A62bEa555CAe71A8061E10cE9d639F1`
+地址（proxy）：`0xD4c61F5A9E97A5E31584b05752524F201Cc8D3fF`
 
 ### 发币（用户）
 
@@ -509,20 +494,18 @@ python3 tools/find_vanity.py --predict --portal 0x8ADab64A1A62bEa555CAe71A8061E1
 
 ## CosmVaultPortal 方法
 
-地址（proxy）：`0x6CB77C7Cdf15153D9F31b89305875E90D6BB895C`
+地址（proxy）：`0x603D14499d5d4Cb927391ee5612B36f82E0eE83a`
 
 | 方法 | 返回 | 调用方 | 备注 |
 |------|------|--------|------|
 | `newTokenV6WithVault(NewTokenV6WithVaultParams) payable` | `token` | 用户 | 官方路径 B |
-| `newTokenV6CloneFrom(address source, NewTokenV6CloneFromParams) payable` | `token` | 用户 | 未上架 clone |
-| `previewCloneFromToken(address source) view` | `TaxVaultTemplatePreview` | 前端 | `ok=false` 不可 clone |
 | `getVault(address taxToken) view` | `VaultInfo` | 前端 | 已知路径 B |
 | `tryGetVault(address taxToken) view` | `(found, VaultInfo)` | 前端 | 不确定时用 |
 | `getVaultFactory(address factory) view` | `VaultFactoryInfo` | 前端 | 选工厂标签 |
 | `portal() view` | `CosmPortal` | 前端 | 关联 Portal |
 | `registerVaultFactory(...)` | — | **owner** | 部署注册 |
 
-事件：`FlapTaxVaultTokenCreated(token, vault, vaultFactory)` · `VaultFactoryRegistered(...)` · `TokenClonedFromTemplate(source, newToken, vaultFactory)`
+事件：`FlapTaxVaultTokenCreated(token, vault, vaultFactory)` · `VaultFactoryRegistered(...)`
 
 ---
 
@@ -544,152 +527,245 @@ python3 tools/find_vanity.py --predict --portal 0x8ADab64A1A62bEa555CAe71A8061E1
 
 | vaultType | 工厂地址 | vaultData 编码 |
 |-----------|----------|----------------|
-| `split` | `0xEe6da751a5E2265d92405Bc22297eaAc07956B05` | `abi.encode(Recipient[])` · `Recipient{address recipient; uint16 bps}` · 1–10 人去重 · bps 合计 10000 |
-| `scheduled-buyback` | `0x7cCE9d8bb10136aB66408EA7233A25cE26e0620D` | `abi.encode(uint8 triggerMode, uint8 buybackMode, uint256 intervalSeconds, uint256 minBnbAmount, uint256 maxBnbPerTrigger)` · trigger:`0=time 1=amount 2=both` · buyback:`0=token 1=LP` |
-| `omnidrop` | `0x380c0323f42029B7e16B1E1ce211399a73a719a7` | `abi.encode(uint8 dropMode, address[] recipients, uint256 minBnbToDrop)` · drop:`0=token 1=LP 2=BNB` |
-| `silent` | `0x4532a7292fC7792cD15362C5F72bA5033C0b543a` | `abi.encode(uint256 maxSellPerTx)` |
-| `burn-dividend` | `0xDBC5C7655178933FE6938deD89A646451cd3eDf2` | 空 `0x` |
-| `lp-staking-dividend` | `0x2d3038DAB629Ff27EE0c1A5063Fcd4E88F178c8D` | 空 `0x`（迁移后 `setPair`） |
-| `token-staking-dividend` | `0x48B83e78E40924Cb61A3Bf2fC90a7C1992e26992` | 空 `0x` |
-| `rank-burn-dividend` | `0x893Ab0517e93D392728f397464A22c0A3F74D213` | `abi.encode(uint256 minBurnAmount)`；也可空=`0` |
+| `split` | `0x429A41Ca9F838f60724fC7f59b8CeA3A2d9a284F` | `abi.encode(Recipient[])` · `Recipient{address recipient; uint16 bps}` · 1–10 人去重 · bps 合计 10000 |
+| `scheduled-buyback` | `0xD238acD9a9C1FE228014B9003451136830d399c9` | `abi.encode(triggerMode, buybackMode, intervalSeconds, minBnbAmount, maxBnbPerTrigger[, firstExecutableAt])` · trigger:`0=time 1=amount+interval 2=both` · buyback:`0=token 1=LP` · `firstExecutableAt` 可选 unix 秒 |
+| `burn-dividend` | `0xdb788839121465D3c573efBaAaD1A2E9F05717DF` | 空 `0x` |
+| `lp-staking-dividend` | `0xDCE724CDBA5683FD616089e3d6eaC10613831abB` | 空 `0x`（迁移后 `setPair`） |
+| `token-staking-dividend` | `0x67F96422CDCC68A12915Dc531058744CdC832DE4` | 空 `0x` |
+| `rank-burn-dividend` | `0xa33f8FbAb63Cc2234d56a4942e10ad02536b0bB1` | `abi.encode(uint256 minBurnAmount)`；也可空=`0` |
 
 ---
 
 ## 金库实例方法（完整列表）
 
 地址：`VaultPortal.getVault(token).vault`（先 `tryGetVault` 确认 `found`）。  
-收税均为被动入账（`receive` / ERC20 转入），无需主动调用。
+收税均为被动入账（`receive`），无需主动调用。  
+前端聚合首选：`getStatus()`（池子）+ `getUserInfo(user)`（个人）；写操作见各表「操作」小节。
 
 ### 通用（全部 vaultType）
 
-| 方法 | 返回 | 调用方 | 备注 |
-|------|------|--------|------|
-| `factory() view` | `address` | 前端 | 创建工厂 |
-| `taxToken() view` | `address` | 前端 | 关联税币 |
-| `creator() view` | `address` | 前端 | 发币人 |
-| `quoteToken() view` | `address` | 前端 | 恒 BNB=`0` |
-| `vaultType() view` | `string` | 前端 | 如 `"split"` |
-| `description() view` | `string` | 前端 | 动态文案（可含余额） |
-| `vaultUISchema() view` | `VaultUISchema` | 前端 | 渲染操作区 |
+| 方法 | 类型 | 返回 | 备注 |
+|------|------|------|------|
+| `factory()` | view | `address` | 创建工厂 |
+| `taxToken()` | view | `address` | 关联税币 |
+| `creator()` | view | `address` | 发币人 |
+| `quoteToken()` | view | `address` | 恒 BNB=`0` |
+| `vaultType()` | view | `string` | 如 `"split"` |
+| `description()` | view | `string` | 动态文案 |
+| `vaultUISchema()` | view | `VaultUISchema` | 渲染操作区 |
 
-### `split` — 分账金库
+---
 
-**UISchema 方法：** `dispatch` · `claim`
+### `split` — 分配税收（账本领取）
 
-| 方法 | 签名要点 | 调用方 | 备注 |
-|------|----------|--------|------|
-| `recipients(i)` | → `(address recipient, uint16 bps)` | 前端 | 收款人列表项 |
-| `userBalances(user)` | → `(uint128 accumulated, uint128 claimed)` | 前端 | 个人账本 |
-| `TOTAL_BPS()` | → `10000` | 前端 | 常量 |
-| `recipientCount()` | → `uint256` | 前端 | 人数 |
-| `getRecipientsInfo()` | → `RecipientInfo[]` | 前端 | `{recipient,bps,accumulated,claimed}` |
-| `accrue()` | — | 任何人 / keeper | 把未记账余额记入账本 |
-| `dispatch()` | — | **keeper 推荐** / 任何人 | 推送给全部收款人 |
-| `claim(address user)` | — | 用户或代领 | 单人领取 |
+税 BNB 入账只按 bps **记账**，不自动打款。用户调 `claim`；`dispatch` 可选（代全员推送）。
 
-### `scheduled-buyback` — 定时回购
+**UISchema：** `dispatch` · `claim`
 
-**UISchema 方法：** `canTrigger`（用户只读；执行靠 keeper）
+#### 只读
 
-| 方法 | 签名要点 | 调用方 | 备注 |
-|------|----------|--------|------|
-| `OPERATOR_ROLE()` | → `bytes32` | 前端/keeper | 角色 id |
-| `router()` / `triggerMode()` / `buybackMode()` | 配置 | 前端 | — |
-| `intervalSeconds()` / `minBnbAmount()` / `maxBnbPerTrigger()` | 配置 | 前端 | — |
-| `lastTriggeredAt()` / `totalBurned()` | 状态 | 前端 | — |
-| `canTrigger()` | → `bool` | 前端 / keeper | 是否可触发 |
-| `trigger()` | → `uint256 burnedAmount` | **keeper（`OPERATOR_ROLE`）** | 回购并销毁 |
-| `hasRole` / `grantRole` / `revokeRole` / … | AccessControl | admin | 运营 |
+| 方法 | 返回 | 备注 |
+|------|------|------|
+| `getStatus()` | `SplitStatus` | **首选** · 见下表 |
+| `getUserInfo(address user)` | `UserInfo` | **首选** · 含 claimable / isRecipient |
+| `claimable(address user)` | `uint256` | 含未记账余额近似 |
+| `getRecipientsInfo()` | `RecipientInfo[]` | 全员账本 |
+| `recipients(i)` | `(address, uint16 bps)` | 列表项 |
+| `userBalances(user)` | `(uint128 accumulated, uint128 claimed)` | 原始账本 |
+| `recipientCount()` / `TOTAL_BPS()` | … | 人数 / `10000` |
+| `totalDistributed()` / `totalClaimed()` | `uint256` | 累计入账 / 已领 |
 
-### `omnidrop` — 固定名单空投
+`SplitStatus`：`vaultBalance` · `totalDistributed` · `totalClaimed` · `totalClaimable` · `uncredited` · `recipientCount` · `recipients[]`  
+`RecipientInfo`：`recipient` · `bps` · `accumulated` · `claimed` · `claimable`  
+`UserInfo`：`bps` · `accumulated` · `claimed` · `claimable` · `isRecipient`
 
-**UISchema 方法：** `airdrop`
+#### 操作
 
-| 方法 | 签名要点 | 调用方 | 备注 |
-|------|----------|--------|------|
-| `router()` / `dropMode()` / `minBnbToDrop()` | 配置 | 前端 | — |
-| `fixedRecipientCount()` | → `uint256` | 前端 | — |
-| `fixedRecipients()` | → `address[]` | 前端 | 名单 |
-| `airdrop()` | → `uint256 count` | **用户 / 任何人** | 余额不足 `min` 时返回 0 |
+| 方法 | 调用方 | 前置 | 备注 |
+|------|--------|------|------|
+| `claim(address user)` | 用户 / 代领 | 无 | 领取 `accumulated−claimed`；内部先 `accrue` |
+| `dispatch()` | 任何人 / keeper | 无 | 可选：代全部收款人推送 |
+| `accrue()` | 任何人 | 无 | 把直转未记账余额记入账本 |
 
-### `silent` — 税收 BNB 接盘销毁
+事件：`FlapSplitVaultDistributed` · `FlapSplitVaultClaimed` · `FlapSplitVaultDispatched`
 
-**UISchema 方法：** `quoteSilentSell` · `silentSell`（需 `approve(taxToken, vault, amount)`）
+---
 
-| 方法 | 签名要点 | 调用方 | 备注 |
-|------|----------|--------|------|
-| `router()` / `maxSellPerTx()` / `totalBurned()` | 配置/统计 | 前端 | — |
-| `quoteSilentSell(uint256 tokenAmount)` | → `uint256 bnbOut` | 前端 | 预估 |
-| `silentSell(uint256 tokenAmount)` | → `uint256 bnbOut` | **用户** | 卖给金库并烧币 |
+### `scheduled-buyback` — 定时回购销毁
 
-### `burn-dividend` — 销毁换分红
+**UISchema：** `canTrigger` · `getStatus` · `countdownSeconds`  
+**Keeper：** 持 `OPERATOR_ROLE` 轮询 `getStatus().ready`，就绪调 `trigger()`。**不要**走 `CosmTriggerService`。  
+手动充值：直接转 BNB 到 vault（`Deposited`）。
 
-**UISchema 方法：** `burn` · `claim`（burn 需 approve taxToken）
+#### 只读
 
-| 方法 | 签名要点 | 调用方 | 备注 |
-|------|----------|--------|------|
-| `totalBurned()` / `accRewardPerShare()` | 池子状态 | 前端 | — |
-| `burned(user)` / `rewardDebt(user)` | 个人状态 | 前端 | — |
-| `pendingReward(address user)` | → `uint256` | 前端 | 待领 BNB |
-| `burn(uint256 amount)` | — | **用户** | 销毁税币并结算 |
-| `claim()` | → `uint256 amount` | **用户** | 领取 BNB |
+| 方法 | 返回 | 备注 |
+|------|------|------|
+| `getStatus()` | `BuybackStatus` | **首选** · 一次读齐页面 |
+| `canTrigger()` | `bool` | 是否可触发 |
+| `countdownSeconds()` | `uint256` | 距下次时间窗；已到点为 0 |
+| `nextTriggerAt()` / `nextSpendBnb()` | `uint256` | 下次时间 / 下次花费 |
+| `triggerMode()` / `buybackMode()` | `uint8` | 0–2 / 0–1 |
+| `intervalSeconds()` / `minBnbAmount()` / `maxBnbPerTrigger()` | `uint256` | 配置 |
+| `firstExecutableAt()` / `lastTriggeredAt()` | `uint256` | 首次可执行 / 上次触发 |
+| `totalBurned()` / `totalBnbSpent()` / `triggerCount()` | `uint256` | 累计销毁 / 花费 / 次数 |
+| `router()` | `address` | PCS V2 Router |
+| `OPERATOR_ROLE()` / `hasRole(role, account)` | … | 权限校验 |
 
-### `token-staking-dividend` — 质押本币分红
+`BuybackStatus`：`triggerMode` · `buybackMode` · `intervalSeconds` · `minBnbAmount` · `maxBnbPerTrigger`(0=无上限) · `lastTriggeredAt` · `nextTriggerAt` · `countdownSeconds` · `vaultBnb` · `nextSpendBnb` · `totalTokensBurned` · `totalBnbSpent` · `triggerCount` · `ready` · `buybackModeLabel` · `triggerModeLabel` · `executionPathLabel`
 
-**UISchema 方法：** `stake` · `withdraw` · `claim`（stake 需 approve taxToken）
+#### 操作
 
-| 方法 | 签名要点 | 调用方 | 备注 |
-|------|----------|--------|------|
-| `totalStaked()` / `accRewardPerShare()` | 池子 | 前端 | — |
-| `staked(user)` / `rewardDebt(user)` | 个人 | 前端 | — |
-| `pendingReward(address user)` | → `uint256` | 前端 | — |
-| `stake(uint256 amount)` | — | **用户** | 质押本币 |
-| `withdraw(uint256 amount)` | — | **用户** | 解押 |
-| `claim()` | → `uint256 amount` | **用户** | 领 BNB |
+| 方法 | 调用方 | 前置 | 备注 |
+|------|--------|------|------|
+| `trigger()` | **keeper（`OPERATOR_ROLE`）** | `ready==true` | 未就绪返回 `0`（不 revert） |
+| `receive()` / 转 BNB | 用户 | — | 手动充值进池 |
 
-### `lp-staking-dividend` — 质押 LP 分红
+事件：`Deposited` · `ScheduledBuyback`
 
-**UISchema 方法：** `stake` · `withdraw` · `claim`（stake 需 approve LP）
+---
 
-| 方法 | 签名要点 | 调用方 | 备注 |
-|------|----------|--------|------|
-| `pair()` | → `address` | 前端 | 迁移后须先设置 |
-| `totalStaked()` / `accRewardPerShare()` | 池子 | 前端 | — |
-| `staked(user)` / `rewardDebt(user)` | 个人 | 前端 | — |
-| `pendingReward(address user)` | → `uint256` | 前端 | — |
-| `setPair(address pair_)` | — | **creator（一次）** | DEX 迁移后绑定 V2 pair |
-| `stake(uint256 amount)` | — | **用户** | 质押 LP |
-| `withdraw(uint256 amount)` | — | **用户** | 解押 LP |
-| `claim()` | → `uint256 amount` | **用户** | 领 BNB |
+### `burn-dividend` — 燃烧分红
 
-### `rank-burn-dividend` — 燃烧榜分红
+燃烧本币进黑洞累加算力；税 BNB 按 `accRewardPerShare` 分红。**claim 后算力不清零**。
 
-**UISchema 方法：** `burn` · `claim`（80% 权重池 + 20% Top10）
+**UISchema：** `burn` · `claim`（burn 前 `approve(vault, amount)` taxToken）
 
-| 方法 | 签名要点 | 调用方 | 备注 |
-|------|----------|--------|------|
-| `WEIGHT_POOL_BPS()` / `RANK_POOL_BPS()` / `BPS()` / `TOP_N()` | 常量 | 前端 | 8000 / 2000 / 10000 / 10 |
-| `minBurnAmount()` / `totalBurned()` / `accRewardPerShare()` | 配置/状态 | 前端 | — |
-| `rankPoolBnb()` / `weightPoolDebtBnb()` | 池子 | 前端 | — |
-| `burned(user)` / `rewardDebt(user)` / `rankClaimed(user)` | 个人 | 前端 | — |
-| `topBurners(i)` / `topBurnedAmounts(i)` | 榜单项 | 前端 | — |
-| `topBurnersList()` | → `(address[10], uint256[10])` | 前端 | 完整榜 |
-| `pendingReward(address user)` | → `uint256` | 前端 | 权重+榜单待领 |
-| `burn(uint256 amount)` | — | **用户** | ≥ `minBurnAmount` |
-| `claim()` | → `uint256 amount` | **用户** | 领权重+榜单 BNB |
+#### 只读
 
-### vaultType → UISchema 方法速查
+| 方法 | 返回 | 备注 |
+|------|------|------|
+| `getStatus()` | `BurnStatus` | **首选** |
+| `getUserInfo(address user)` | `UserInfo` | **首选** · `pending`/`shareBps` |
+| `pendingReward(address user)` | `uint256` | 待领 BNB |
+| `totalBurned()` / `accRewardPerShare()` / `pendingBnb()` | … | 池子 |
+| `totalRewardsIn()` / `totalClaimed()` / `participantCount()` | … | 统计 |
+| `burned(user)` / `rewardDebt(user)` / `claimed(user)` | `uint256` | 个人 |
 
-| vaultType | `vaultUISchema().methods[].name` |
-|-----------|----------------------------------|
-| `split` | `dispatch`, `claim` |
-| `scheduled-buyback` | `canTrigger` |
-| `omnidrop` | `airdrop` |
-| `silent` | `quoteSilentSell`, `silentSell` |
-| `burn-dividend` | `burn`, `claim` |
-| `token-staking-dividend` | `stake`, `withdraw`, `claim` |
-| `lp-staking-dividend` | `stake`, `withdraw`, `claim` |
-| `rank-burn-dividend` | `burn`, `claim` |
+`BurnStatus`：`vaultBnb` · `totalBurned` · `pendingBnb` · `accRewardPerShare` · `totalRewardsIn` · `totalClaimed` · `participantCount`  
+`UserInfo`：`burned` · `rewardDebt` · `pending` · `claimed` · `shareBps`
+
+#### 操作
+
+| 方法 | 调用方 | 前置 | 备注 |
+|------|--------|------|------|
+| `burn(uint256 amount)` | **用户** | `approve(vault, amount)` | 转死地址；累加算力 |
+| `claim()` | **用户** | — | → `uint256` 领取 BNB；算力保留 |
+
+事件：`Burned` · `Claimed`
+
+---
+
+### `token-staking-dividend` — 本币质押分红
+
+**UISchema：** `stake` · `withdraw` · `claim`（stake 前 `approve(vault, amount)` taxToken）
+
+#### 只读
+
+| 方法 | 返回 | 备注 |
+|------|------|------|
+| `getStatus()` | `StakeStatus` | **首选** |
+| `getUserInfo(address user)` | `UserInfo` | **首选** |
+| `pendingReward(address user)` | `uint256` | 待领 BNB |
+| `totalStaked()` / `accRewardPerShare()` / `pendingBnb()` | … | 池子 |
+| `totalRewardsIn()` / `totalClaimed()` / `participantCount()` | … | 统计 |
+| `staked(user)` / `rewardDebt(user)` / `claimed(user)` | `uint256` | 个人 |
+
+`StakeStatus`：`vaultBnb` · `totalStaked` · `pendingBnb` · `accRewardPerShare` · `totalRewardsIn` · `totalClaimed` · `participantCount`  
+`UserInfo`：`staked` · `rewardDebt` · `pending` · `claimed` · `shareBps`
+
+#### 操作
+
+| 方法 | 调用方 | 前置 | 备注 |
+|------|--------|------|------|
+| `stake(uint256 amount)` | **用户** | `approve(vault, amount)` | 质押本币 |
+| `withdraw(uint256 amount)` | **用户** | — | 解押；超额则截断 |
+| `claim()` | **用户** | — | → `uint256` 领 BNB |
+
+事件：`Staked` · `Withdrawn` · `Claimed`
+
+---
+
+### `lp-staking-dividend` — LP 质押分红
+
+迁移后 **creator 一次** `setPair(pair)`，再质押 LP。
+
+**UISchema：** `stake` · `withdraw` · `claim`（stake 前 `approve(vault, amount)` LP）
+
+#### 只读
+
+| 方法 | 返回 | 备注 |
+|------|------|------|
+| `getStatus()` | `StakeStatus` | **首选** · 含 `pair` |
+| `getUserInfo(address user)` | `UserInfo` | **首选** |
+| `pendingReward(address user)` | `uint256` | 待领 BNB |
+| `pair()` | `address` | `0`=未绑定 |
+| `totalStaked()` / `accRewardPerShare()` / `pendingBnb()` | … | 池子 |
+| `totalRewardsIn()` / `totalClaimed()` / `participantCount()` | … | 统计 |
+| `staked(user)` / `rewardDebt(user)` / `claimed(user)` | `uint256` | 个人 |
+
+`StakeStatus`：`pair` · `vaultBnb` · `totalStaked` · `pendingBnb` · `accRewardPerShare` · `totalRewardsIn` · `totalClaimed` · `participantCount`  
+`UserInfo`：同 token-staking
+
+#### 操作
+
+| 方法 | 调用方 | 前置 | 备注 |
+|------|--------|------|------|
+| `setPair(address pair_)` | **creator（一次）** | DEX 已迁移 | 绑定 V2 pair |
+| `stake(uint256 amount)` | **用户** | `pair≠0` · `approve LP` | 质押 LP |
+| `withdraw(uint256 amount)` | **用户** | — | 解押 LP |
+| `claim()` | **用户** | — | → `uint256` 领 BNB |
+
+事件：`PairUpdated` · `Staked` · `Withdrawn` · `Claimed`
+
+---
+
+### `rank-burn-dividend` — 黑洞排行榜燃烧分红
+
+80% 权重池（同 burn-dividend）+ 20% 在每次 `burn` 前按当前 Top10 算力记入 `rankCredit`。**claim 清零 credit，不清零 burned**。
+
+**UISchema：** `burn` · `claim`（burn 前 `approve(vault, amount)` taxToken）
+
+#### 只读
+
+| 方法 | 返回 | 备注 |
+|------|------|------|
+| `getStatus()` | `RankStatus` | **首选** · 含 Top10 |
+| `getUserInfo(address user)` | `UserInfo` | **首选** · `rank` 1–10 / 0=未上榜 |
+| `pendingReward(address user)` | `uint256` | 权重待领 + rankCredit |
+| `pendingWeight(user)` / `pendingRank(user)` | `uint256` | 分拆 |
+| `topBurnersList()` | `(address[10], uint256[10])` | 完整榜 |
+| `topBurners(i)` / `topBurnedAmounts(i)` | … | 单项 |
+| `WEIGHT_POOL_BPS()` / `RANK_POOL_BPS()` / `BPS()` / `TOP_N()` | 常量 | 8000 / 2000 / 10000 / 10 |
+| `minBurnAmount()` | `uint256` | 最小燃烧 |
+| `totalBurned()` / `accRewardPerShare()` / `pendingWeightBnb()` / `rankPendingBnb()` | … | 池子 |
+| `totalRewardsIn()` / `totalWeightClaimed()` / `totalRankDistributed()` / `totalRankClaimed()` / `participantCount()` | … | 统计 |
+| `burned` / `rewardDebt` / `rankCredit` / `weightClaimed` / `rankClaimed` | mapping | 个人 |
+
+`RankStatus`：`vaultBnb` · `totalBurned` · `pendingWeightBnb` · `rankPendingBnb` · `accRewardPerShare` · `totalRewardsIn` · `totalWeightClaimed` · `totalRankDistributed` · `totalRankClaimed` · `participantCount` · `minBurnAmount` · `topBurners[10]` · `topBurnedAmounts[10]`  
+`UserInfo`：`burned` · `rewardDebt` · `weightPending` · `rankCredit` · `weightClaimed` · `rankClaimed` · `pendingTotal` · `shareBps` · `rank`
+
+#### 操作
+
+| 方法 | 调用方 | 前置 | 备注 |
+|------|--------|------|------|
+| `burn(uint256 amount)` | **用户** | `amount ≥ minBurnAmount` · approve | 先分 20% 给当前 Top10，再累加算力 |
+| `claim()` | **用户** | — | → `uint256`；领权重+rankCredit；算力保留 |
+
+事件：`Burned` · `RankPoolDistributed` · `Claimed(user, weightAmt, rankAmt)`
+
+---
+
+### vaultType → UISchema / 前端首选速查
+
+| vaultType | UISchema methods | 只读首选 | 写操作 |
+|-----------|------------------|----------|--------|
+| `split` | `dispatch`, `claim` | `getStatus` · `getUserInfo` | `claim(user)` · `dispatch` |
+| `scheduled-buyback` | `canTrigger`, `getStatus`, `countdownSeconds` | `getStatus` | `trigger`（keeper） |
+| `burn-dividend` | `burn`, `claim` | `getStatus` · `getUserInfo` | `burn` · `claim` |
+| `token-staking-dividend` | `stake`, `withdraw`, `claim` | `getStatus` · `getUserInfo` | `stake` · `withdraw` · `claim` |
+| `lp-staking-dividend` | `stake`, `withdraw`, `claim` | `getStatus` · `getUserInfo` | `setPair` · `stake` · `withdraw` · `claim` |
+| `rank-burn-dividend` | `burn`, `claim` | `getStatus` · `getUserInfo` · `topBurnersList` | `burn` · `claim` |
 
 ---
 
@@ -716,7 +792,7 @@ python3 tools/find_vanity.py --predict --portal 0x8ADab64A1A62bEa555CAe71A8061E1
 
 ## CosmTriggerService 方法
 
-地址（proxy）：`0x7277712198e66A3B4A7c0e84062961f44CEe07f7`  
+地址（proxy）：`0xa4AC9850b5ff7CeA6EdB7C4324F4DCa0b5cE6e49`  
 当前：`getFee()=0.001 ether` · `getMaxCallbackGas()=500000` · `feeReceiver`=部署 owner。
 
 请求方合约须实现 `ITriggerReceiver.trigger(uint256 requestId)`。
@@ -769,10 +845,10 @@ python3 tools/find_vanity.py --predict --portal 0x8ADab64A1A62bEa555CAe71A8061E1
 
 ```typescript
 export const CHAIN_ID = 56;
-export const PROXY_ADMIN = "0xA1f85d13e55B9CeB6Dc295157A06944ea5fdCFE9";
-export const PORTAL = "0x8ADab64A1A62bEa555CAe71A8061E10cE9d639F1";
-export const VAULT_PORTAL = "0x6CB77C7Cdf15153D9F31b89305875E90D6BB895C";
-export const TRIGGER_SERVICE = "0x7277712198e66A3B4A7c0e84062961f44CEe07f7";
+export const PROXY_ADMIN = "0xbD560b2a846Fb4dFC19b275a2655649182437840";
+export const PORTAL = "0xD4c61F5A9E97A5E31584b05752524F201Cc8D3fF";
+export const VAULT_PORTAL = "0x603D14499d5d4Cb927391ee5612B36f82E0eE83a";
+export const TRIGGER_SERVICE = "0xa4AC9850b5ff7CeA6EdB7C4324F4DCa0b5cE6e49";
 export const VANITY_SUFFIX_TAX = 0x0111;
 export const VANITY_SUFFIX_STANDARD = 0x0222;
 
@@ -785,14 +861,12 @@ export const QUOTE = {
 } as const;
 
 export const VAULT_FACTORY = {
-  split: "0xEe6da751a5E2265d92405Bc22297eaAc07956B05",
-  scheduledBuyback: "0x7cCE9d8bb10136aB66408EA7233A25cE26e0620D",
-  omnidrop: "0x380c0323f42029B7e16B1E1ce211399a73a719a7",
-  silent: "0x4532a7292fC7792cD15362C5F72bA5033C0b543a",
-  burnDividend: "0xDBC5C7655178933FE6938deD89A646451cd3eDf2",
-  lpStakingDividend: "0x2d3038DAB629Ff27EE0c1A5063Fcd4E88F178c8D",
-  tokenStakingDividend: "0x48B83e78E40924Cb61A3Bf2fC90a7C1992e26992",
-  rankBurnDividend: "0x893Ab0517e93D392728f397464A22c0A3F74D213",
+  split: "0x429A41Ca9F838f60724fC7f59b8CeA3A2d9a284F",
+  scheduledBuyback: "0xD238acD9a9C1FE228014B9003451136830d399c9",
+  burnDividend: "0xdb788839121465D3c573efBaAaD1A2E9F05717DF",
+  lpStakingDividend: "0xDCE724CDBA5683FD616089e3d6eaC10613831abB",
+  tokenStakingDividend: "0x67F96422CDCC68A12915Dc531058744CdC832DE4",
+  rankBurnDividend: "0xa33f8FbAb63Cc2234d56a4942e10ad02536b0bB1",
 } as const;
 ```
 
