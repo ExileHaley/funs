@@ -1,22 +1,22 @@
 # Cosm 前端对接 API
 
-> BSC 主网 · Chain ID `56` · 版本 `cosm-v0.7.0-flap-align`  
+> BSC 主网 · Chain ID `56` · 版本 `cosm-v0.7.0`  
 > Vanity 后缀（代币地址**低 16 bit**须匹配）：有税 `0x0111` · 无税 `0x0222`（读 `vanitySuffixTax` / `vanitySuffixStandard`）
 
 ## 合约地址（前端调用）
 
-> **2026-07-22 主网全量重部署** · `cosm-v0.7.0-flap-align` · 旧批次（`0xF2e963…` / `0xaC11A6…` / `0xE5884D…` 等）已废弃。  
-> 回归：**54** unit + **78** archive fork（`COSM_ARCHIVE_FORK=1` + Ankr archive RPC；fork 读链用 `bsc-dataseed.binance.org`）。
+> **2026-08-03 主网全量重部署** · `cosm-v0.7.0` · 旧批次（`0x7AdaFe1f…` / `0xc87B6022…` / `0xde7B29CA…` 等）已废弃。  
+> 回归：**163** unit + **78** archive fork（`COSM_ARCHIVE_FORK=1` + Ankr archive RPC；fork 读链用 `bsc-dataseed.binance.org`）。
 > 下表为前端需**直接 call** 的固定地址；impl / facet / migrator / dispatch 等由协议内部使用，**勿写进前端配置**（完整清单见 `deployments/bsc-56.json`）。
 
 ### 协议入口
 
 | 合约 | 地址 | 用途 |
 |------|------|------|
-| CosmPortal | `0x7AdaFe1fD88D214114736C3E6646c7087e405759` | 发币、曲线/DEX 买卖、状态查询、迁移 |
-| CosmVaultPortal | `0xc87B60222B23A91FaF45716DA19De8408Ad8261d` | 有税路径 B（带金库发币） |
-| CosmTriggerService | `0xde7B29CA52Be840Eb7621dA9e5F486A47a6fCBb7` | 链上调度器；scheduled-buyback 金库通过它预约/回调回购 |
-| CosmTaxConverter | `0x103551b34b1e4F5BEFe266Fb6518804b2fda4051` | Case3 / keeper：batch dispatch、trigger split（Flap `TaxDistributionHelper` proxy） |
+| CosmPortal | `0x59E3f460c45Bdb910f27346cFAdF496E91C97AfD` | 发币、曲线/DEX 买卖、状态查询、迁移 |
+| CosmVaultPortal | `0x9e9e9a2392a379fA03c268098Cd9374d7885c55D` | 有税路径 B（带金库发币） |
+| CosmTriggerService | `0xAeE5Cc03275559Bcd4013E47351C72e00930A9D6` | 链上调度器；scheduled-buyback 金库通过它预约/回调回购 |
+| CosmTaxConverter | `0xCfC50035c56700D220164417f5f519ED3AEdf347` | Case3 / keeper：batch dispatch、trigger split（Flap `TaxDistributionHelper` proxy） |
 
 ### 发币后按 token 读取（勿写死）
 
@@ -33,12 +33,28 @@ Vanity salt 搜址：`Portal.standardTokenImpl()` / `Portal.taxTokenImpl()`（vi
 
 | 工厂 | 地址 | vaultType |
 |------|------|-----------|
-| Split | `0x05BF4E0A4F467bba9dd4B77417663c23aAa003b9` | `split` |
-| Scheduled Buyback | `0xe34E1E13Cdc8cB899870ba9910fA5183d9C74F6d` | `scheduled-buyback` |
-| Burn Dividend | `0x38Fd92808A6C20F47aa7dC916c8af34a5f5Fa04a` | `burn-dividend` |
-| LP Staking Dividend | `0x85EcB0384fbe5f5817de95bE297Aa320876f6B10` | `lp-staking-dividend` |
-| Token Staking Dividend | `0x952A2E58A6C5F90C9F304b5809CCD77e21dFe5Fd` | `token-staking-dividend` |
-| Rank Burn Dividend | `0xae2c90588fEC3D338fdcDbAbb1DFbacA70b4D16D` | `rank-burn-dividend` |
+| Split | `0xB915d88e2c336e0089e221F0A965aE662092c2f7` | `split` |
+| Scheduled Buyback | `0x173762B34fcC23E91F0fA49F44f08c7ef4dc3dc5` | `scheduled-buyback` |
+| Burn Dividend | `0x1AD1F4F8e46acb907db94E5148Ac95F79c101bcE` | `burn-dividend` |
+| LP Staking Dividend | `0x54FB535ad9bf86B33079899c5bCfD704D3AcEAEb` | `lp-staking-dividend` |
+| Token Staking Dividend | `0x18BF375d070E2ED8d99405773947757b81D73C06` | `token-staking-dividend` |
+| Rank Burn Dividend | `0xEEBBa479C48540A087D2c720E752AC978fb23787` | `rank-burn-dividend` |
+
+### 链上 impl / 模块（运维参考，前端勿配置）
+
+完整清单：`deployments/bsc-56.json`
+
+| 键 | 地址 | 说明 |
+|----|------|------|
+| `portalImpl` | `0x4102031eE61e3c7339B1522D42D61ca88824cdA9` | CosmPortal 薄代理 impl |
+| `portalTrade` | `0xea586bC1548fC21A3dAB8c350ab6EEc92a258D11` | Portal 买卖模块 |
+| `portalLaunch` | `0xfbe4b571C96c48c577758fddA39D43F26f554f1c` | Portal 发币模块 |
+| `portalMigrate` | `0xb3Bf51077B54734A4BdE0EE6201d6D65A13c30Fd` | Portal 迁移模块 |
+| `vaultImpl` | `0x710d3887778418d092dE52AD1516838fd4e99fa7` | CosmVaultPortal 薄代理 impl |
+| `vaultLens` | `0x6027178587d75c5059261745662b622f1ab8e2af` | VaultPortal 只读模块 |
+| `vaultLaunch` | `0x10d7ff823e07187b125b9dea1a04f10515efdd69` | VaultPortal 发币模块 |
+| `vaultTweak` | `0xf80d014753add75e14b79f8328b139f6c223faf7` | VaultPortal 管理模块 |
+| `defaultTaxConverter` | `0xCfC50035c56700D220164417f5f519ED3AEdf347` | 与 `converterProxy` 相同 |
 
 ### Quote 白名单
 
@@ -324,6 +340,7 @@ await portal.write.newTokenV7([launchParams], { value: quoteIsBnb ? quoteAmt : 0
 | **tax 分配** | `LaunchParams.tax`（`TaxAllocation`）：`mktBps/deflationBps/dividendBps/lpBps` 合计 10000 |
 | **金库** | 无；`getToken(token).vault == 0` |
 | **税到账** | 曲线/DEX 上**累账**；须调 `TaxSplitter.dispatch()` 才打到 mkt/分红/LP |
+| **迁移** | 强制 **PCS V2**；`CosmTaxToken.mainPool()` = 发币时 CREATE2 预测的 V2 pair（`pools[0]`） |
 
 ```typescript
 await portal.write.newTokenV6([{
@@ -332,7 +349,7 @@ await portal.write.newTokenV6([{
   buyTaxBps: 500, sellTaxBps: 500,
   isTaxed: true,
   tax: { mktBps: 8000, deflationBps: 0, dividendBps: 2000, lpBps: 0, ... },
-  migratorType: 0, // 税币固定 V2 迁移
+  migratorType: 1, // 可填任意值；税币链上强制 V2_MIGRATOR(1)
 }], { value });
 ```
 
@@ -343,13 +360,14 @@ await portal.write.newTokenV6([{
 | 项 | 值 |
 |----|-----|
 | **合约** | `CosmVaultPortal` proxy（**不是** Portal） |
-| **方法** | `newTokenV6WithVault(NewTokenV6WithVaultParams p) payable` |
+| **方法** | `newTokenV6WithVault`（Flap 布局）或 `newCosmTokenV6WithVault`（Cosm 简化布局） |
 | **quote** | **仅 BNB**（`quoteToken = 0`） |
 | **mkt** | `mktBps` **必须 >0**（营销份额进金库，不进钱包） |
 | **内部流程** | 工厂 `newVault` → `Portal.newTokenV6` → 写入 `vaults[token]` |
 
 ```typescript
-await vaultPortal.write.newTokenV6WithVault([{
+// Cosm 简化入口（推荐前端）：含 dividendMode / converter
+await vaultPortal.write.newCosmTokenV6WithVault([{
   name, symbol, meta, salt,
   quoteToken: zeroAddress,
   quoteAmt, buyTaxBps, sellTaxBps,
@@ -359,6 +377,9 @@ await vaultPortal.write.newTokenV6WithVault([{
   vaultFactory: VAULT_FACTORY.split,
   vaultData: encodedFormData,
 }], { value: quoteAmt });
+
+// Flap v1.12.1 兼容入口：字段见 §NewTokenV6WithVaultParams（无 dividendMode，用 dividendToken magic）
+// await vaultPortal.write.newTokenV6WithVault([{ ... }], { value: quoteAmt });
 ```
 
 #### 3.1 带 Vault 时，Schema 怎么用？
@@ -424,7 +445,7 @@ const vault = await portal.read.getVault([tokenAddress]); // 无则 0
 |----|-----|
 | **入口** | **同一组** `quoteExactInput` / `swapExactInput`（或 extension 用 V3） |
 | **内部** | Portal 根据 token 类型转发 PCS，**前端无需换 Router** |
-| **dexId**（`getTokenV8Safe`） | `2` 税币 → PCS **V2** · `3` 普通 → **V3** · `4` 普通 → **Infinity CL** |
+| **dexId**（`getTokenV8Safe` / `getTokenV9Safe`） | 路由 hint：`2`=V2（**税币恒 2**）· `3`=V3 · `4`=Infinity。与 `getToken.dexId`（发币 MDR 序号 0/1/2）不同 |
 
 ```
 迁移前 (Tradable)     迁移后 (DEX)
@@ -481,7 +502,7 @@ swapExactInput        swapExactInput
 ### 状态机
 
 ```
-Invalid(0) ──发币成功──► Tradable(1) ──达阈值/手动迁移──► DEX(2)
+Invalid(0) ──发币成功──► Tradable(1) ──达阈值/手动迁移──► DEX(4)
                             │                              │
                        Portal 曲线买卖         Portal → PCS（税 V2 · 普通默认 Infinity / 可选 V3）
 ```
@@ -533,7 +554,7 @@ Invalid(0) ──发币成功──► Tradable(1) ──达阈值/手动迁移�
 | `dividendMode` | `uint8` | 分红发放币种：`0`=quote（BNB 时为 WBNB 再 unwrap）· `1`=本税币 · `2`=其他 ERC20 |
 | `dividendToken` | `address` | 仅 `dividendMode=2` 必填；mode 0/1 填 `address(0)`。mode2 发币前调 `Portal.hasDividendLiquidity(token)` |
 | `converter` | `address` | 仅 `dividendMode=2` 必填；Case3 MEV 兑换员。**须为** `CosmTaxConverter` proxy（或等效 helper），由它调 `TaxSplitter.dispatch` 兑 quote→分红币；发币留空则用 `Portal.defaultTaxConverter()`。mode 0/1 填 `0` |
-| `antiFarmerDuration` | `uint256` | 迁移后 anti-farmer 秒数。`0`=跳过，直接仅主池收税；上限 365 天 |
+| `antiFarmerDuration` | `uint256` | 迁移后 anti-farmer 秒数。窗口内全 `pools` 收税，结束后仅 `mainPool`。`0`=跳过窗口；上限 365 天 |
 | `taxDuration` | `uint256` | 收税总时长（秒，含 anti-farmer）。`0`=永不过期；若 >0 须 ≥ `antiFarmerDuration`；上限约 100 年 |
 | `mktBps2/3/4` | `uint16` | 从 `mktBps` 划出；合计 ≤ `mktBps`；默认 0 |
 | `market2/3/4` | `address` | 对应收款地址；bps>0 时必填 |
@@ -675,9 +696,16 @@ struct SaltLockEntry {
 | `tax` | `TaxAllocation` | 发币锁定的四路配置（只读展示） |
 | `taxSplitter` | `address` | CosmTaxSplitter；普通币为 `0` |
 | `dividend` | `address` | CosmDividend；未开分红为 `0`。领取调其 `withdrawDividends` |
-| `pool` | `address` | 迁移后池；Tax=V2 pair · 普通 V3=pool · Infinity=poolId 截断；未迁=`0` |
+| `pool` | `address` | 迁移后池；Tax=V2 pair · 普通 V3/Infinity；未迁=`0`。税币 `mainPool` 发币时 CREATE2 预测，须与 V2 pair 一致 |
 | `vault` | `address` | 路径 B 金库；路径 A / 普通=`0`。亦可 `VaultPortal.tryGetVault` |
 | `feeProfile` | `FeeProfile` | 协议费档位，见上表 |
+| `migratorType` | `MigratorType` | 实际迁移器；税币恒 `1`（V2） |
+| `infinityHook` | `address` | Infinity 路径 Hook；非 Infinity=`0` |
+| `bondingCurveFeeBps` | `uint16` | V7 曲线协议费 bps；税币=`0` |
+| `lpFeeProfile` | `uint8` | Flap V3LPFeeProfile 占位 |
+| `dexSupplyThresh` | `uint128` | 迁移阈值 token 数；默认 `800_000_000e18` |
+| `extensionID` | `bytes32` | 扩展 ID；Cosm 默认 `0` |
+| `dexId` | `uint8` | 发币 MDR 序号（`DEX0=0`；legacy `DEX1/2→2`）；**不是** V8Safe 的路由 hint |
 
 ```solidity
 struct TokenState {
@@ -696,6 +724,13 @@ struct TokenState {
     address pool;
     address vault;               // 路径 B
     FeeProfile feeProfile;
+    MigratorType migratorType;
+    address infinityHook;
+    uint16 bondingCurveFeeBps;
+    uint8 lpFeeProfile;
+    uint128 dexSupplyThresh;
+    bytes32 extensionID;
+    uint8 dexId;                 // MDR 发币序号；≠ getTokenV8Safe.dexId
 }
 ```
 
@@ -722,7 +757,7 @@ struct TokenState {
 | `pool` | `address` | 迁移后池；未迁=`0` |
 | `progress` | `uint256` | Wad；`1e18`=可迁/已迁 |
 | `lpFeeProfile` | `uint8` | Flap 占位；Cosm 恒 `0`，可忽略 |
-| `dexId` | `uint8` | 迁移后交易入口提示：`2`=PCS V2（税币）· `3`=PCS V3 · `4`=PCS Infinity CL（普通币默认） |
+| `dexId` | `uint8` | **路由 hint**（`_dexKind`）：`2`=V2 · `3`=V3 · `4`=Infinity；税币恒 `2` |
 
 ```solidity
 struct TokenStateV8Safe {
@@ -736,14 +771,32 @@ struct TokenStateV8Safe {
     uint256 k;
     uint256 dexSupplyThresh;
     address quoteTokenAddress;
-    bool nativeToQuoteSwapEnabled; // true → ERC20 quote 可用 BNB 一键买
-    bytes32 extensionID;           // 插件 ID；0=无
+    bool nativeToQuoteSwapEnabled;
+    bytes32 extensionID;
     uint256 buyTaxRate;
     uint256 sellTaxRate;
     address pool;
     uint256 progress;
-    uint8 lpFeeProfile;            // 恒 0
-    uint8 dexId;                   // 2=V2 · 3=V3 · 4=Infinity
+    uint8 lpFeeProfile;
+    uint8 dexId;                   // 路由 hint；≠ getToken.dexId
+}
+```
+
+---
+
+### `TokenStateV9Safe` — `Portal.getTokenV9Safe`（V8 + 曲线费）
+
+在 V8Safe 基础上多 `bondingCurveFeeRate`（= `getToken.bondingCurveFeeBps`）。列表页一般用 V8 即可。
+
+| 字段 | 类型 | 前端备注 |
+|------|------|----------|
+| （同 V8Safe 各字段） | | |
+| `bondingCurveFeeRate` | `uint16` | V7 曲线协议费 bps；税币=`0` |
+
+```solidity
+struct TokenStateV9Safe {
+    // ... 同 TokenStateV8Safe ...
+    uint16 bondingCurveFeeRate;
 }
 ```
 
@@ -751,45 +804,65 @@ struct TokenStateV8Safe {
 
 ### VaultPortal 结构体（路径 B / 金库，非 CosmTypes 文件但前端常用）
 
-#### `NewTokenV6WithVaultParams` — `VaultPortal.newTokenV6WithVault`
+#### `NewTokenV6WithVaultParams` — `VaultPortal.newTokenV6WithVault`（Flap v1.12.1 布局）
 
 | 字段 | 类型 | 前端备注 |
 |------|------|----------|
 | `name` / `symbol` / `meta` | `string` | 同 LaunchParams |
-| `salt` | `bytes32` | 须用 `Portal.taxTokenImpl()` 搜到的 `0x0111` salt |
-| `quoteToken` | `address` | **仅** `address(0)`（BNB） |
-| `quoteAmt` | `uint256` | 首买；BNB 时 `msg.value`；ERC20 仍 approve **Portal** |
-| `buyTaxBps` / `sellTaxBps` | `uint16` | 至少一侧 >0 |
-| `mktBps` | `uint16` | **必须 >0**（mkt 进金库） |
-| `deflationBps` / `dividendBps` / `lpBps` | `uint16` | 与 `mktBps` 合计 = 10000 |
-| `minimumShareBalance` | `uint256` | 同 TaxAllocation |
-| `dividendMode` | `uint8` | 同 TaxAllocation |
-| `dividendToken` | `address` | 同 TaxAllocation |
-| `converter` | `address` | 同 TaxAllocation（mode=2 必填） |
-| `antiFarmerDuration` | `uint256` | 同 TaxAllocation |
-| `taxDuration` | `uint256` | 同 TaxAllocation |
-| `vaultFactory` | `address` | 已注册且 `enabled` 的工厂（见工厂地址表） |
-| `vaultData` | `bytes` | 按该工厂 `vaultDataSchema()` 编码 |
+| `dexThresh` | `DexThreshType` | 迁移阈值档位；默认 `FOUR_FIFTHS`→8e8 |
+| `salt` | `bytes32` | 须匹配 tax vanity `0x0111` |
+| `migratorType` | `MigratorType` | 可填任意；税币链上强制 `1`（V2） |
+| `quoteToken` | `address` | **仅** BNB=`0` |
+| `quoteAmt` | `uint256` | 首买；`msg.value` |
+| `permitData` / `extensionID` / `extensionData` | | Flap 兼容字段；Cosm 通常空/0 |
+| `dexId` / `lpFeeProfile` | | MDR / LP 档位 hint |
+| `buyTaxRate` / `sellTaxRate` | `uint16` | 至少一侧 >0 |
+| `taxDuration` / `antiFarmerDuration` | `uint64` | 秒 |
+| `mktBps` | `uint16` | **必须 >0** |
+| `deflationBps` / `dividendBps` / `lpBps` | `uint16` | 四路合计 10000 |
+| `minimumShareBalance` | `uint256` | |
+| `dividendToken` | `address` | 无 `dividendMode`；用 magic（`SELF` / `COMPUTED`） |
+| `commissionReceiver` | `address` | 佣金；通常 `0` |
+| `tokenVersion` | `TokenVersion` | `6`（TOKEN_TAXED_V3） |
+| `vaultFactory` / `vaultData` | | 工厂 + 编码参数 |
 
-#### `VaultInfo` — `getVault` / `tryGetVault`
+#### `NewCosmTokenV6WithVaultParams` — `VaultPortal.newCosmTokenV6WithVault`（推荐）
 
 | 字段 | 类型 | 前端备注 |
 |------|------|----------|
-| `vault` | `address` | 金库实例；未绑定=`0` |
-| `isOfficial` | `bool` | 发币时快照：是否官方工厂 |
-| `riskLevel` | `RiskLevel` | `0` UNVERIFIED · `1` LOW · `2` MEDIUM · `3` HIGH |
-| `category` | `VaultCategory` | `0` NONE · `1` SPLIT · `2` BUYBACK · `3` DIVIDEND · `4` AIRDROP（legacy） · `5` GAME |
-| `vaultFactory` | `address` | 创建该金库的工厂 |
+| `name` / `symbol` / `meta` / `salt` | | 同左 |
+| `quoteToken` | `address` | **仅** BNB |
+| `quoteAmt` | `uint256` | |
+| `buyTaxBps` / `sellTaxBps` | `uint16` | |
+| `mktBps` … `lpBps` | `uint16` | 四路合计 10000；`mktBps>0` |
+| `minimumShareBalance` | `uint256` | |
+| `dividendMode` / `dividendToken` / `converter` | | 同 `TaxAllocation` |
+| `antiFarmerDuration` / `taxDuration` | `uint256` | |
+| `vaultFactory` / `vaultData` | | |
+
+#### `VaultInfo` — `VaultPortal.getVault` / `tryGetVault`
+
+| 字段 | 类型 | 前端备注 |
+|------|------|----------|
+| `vault` | `address` | 金库实例 |
+| `vaultFactory` | `address` | 创建工厂；`tryGetVault` 回退读可能为 `0` |
+| `description` | `string` | 金库文案 |
+| `isOfficial` | `bool` | 是否官方工厂 |
+| `riskLevel` | `RiskLevel` | `0` UNVERIFIED · `1` LOW_RISK · `2` LOW_MEDIUM · `3` MEDIUM · `4` HIGH |
+
+分类另调 `getCosmVaultCategory(token)`（`0` NONE · `1` SPLIT · `2` BUYBACK · `3` DIVIDEND · `4` AIRDROP · `5` GAME）或 Flap 遗留 `getVaultCategory`（仅 `0/1`）。
 
 #### `VaultFactoryInfo` — `getVaultFactory`
 
 | 字段 | 类型 | 前端备注 |
 |------|------|----------|
-| `registered` | `bool` | 未注册不可选 |
-| `enabled` | `bool` | 禁用不可发币 |
-| `official` | `bool` | UI「官方」标签 |
-| `riskLevel` | `RiskLevel` | 风险展示 |
-| `category` | `VaultCategory` | 分类筛选 |
+| `registered` | `bool` | |
+| `enabled` | `bool` | |
+| `official` | `bool` | |
+| `riskLevel` | `RiskLevel` | 同上 |
+| `category` | `CosmVaultCategory` | 用 `getCosmFactoryCategory` |
+| `permissionPolicy` | `FactoryPermissionPolicy` | `0` OPEN · `1` TIME_DEPENDENT · `2` DISABLED |
+| `validationMode` | `FactoryValidationMode` | `0` NONE · `1` LEGACY_V6 · `2` V22 |
 
 ### 金库 UI Schema 类型（`vaultDataSchema` / `vaultUISchema`）
 
@@ -852,8 +925,8 @@ export function findVanitySalt(opts: {
 ```
 
 ```bash
-python3 tools/find_vanity.py --predict --portal 0x7AdaFe1fD88D214114736C3E6646c7087e405759 --tax
-python3 tools/find_vanity.py --predict --portal 0x7AdaFe1fD88D214114736C3E6646c7087e405759
+python3 tools/find_vanity.py --predict --portal 0x59E3f460c45Bdb910f27346cFAdF496E91C97AfD --tax
+python3 tools/find_vanity.py --predict --portal 0x59E3f460c45Bdb910f27346cFAdF496E91C97AfD
 ```
 
 ### 2. 支付再发币
@@ -871,7 +944,7 @@ python3 tools/find_vanity.py --predict --portal 0x7AdaFe1fD88D214114736C3E6646c7
 
 ## CosmPortal 方法
 
-地址（proxy）：`0x7AdaFe1fD88D214114736C3E6646c7087e405759`
+地址（proxy）：`0x59E3f460c45Bdb910f27346cFAdF496E91C97AfD`
 
 ### 发币（用户）
 
@@ -896,6 +969,7 @@ python3 tools/find_vanity.py --predict --portal 0x7AdaFe1fD88D214114736C3E6646c7
 | 方法 | 返回 | 备注 |
 |------|------|------|
 | `getTokenV8Safe(address) view` | `TokenStateV8Safe` | 列表默认 |
+| `getTokenV9Safe(address) view` | `TokenStateV9Safe` | V8 + `bondingCurveFeeRate` |
 | `getToken(address) view` | `TokenState` | 详情 / 分红 / 金库 |
 | `getVault(address) view` | `address` | 路径 B 金库；无则 `0` |
 | `predictTokenAddress(bool isTaxed, bytes32 salt) view` | `address` | 复核 salt；勿暴力搜 |
@@ -903,7 +977,7 @@ python3 tools/find_vanity.py --predict --portal 0x7AdaFe1fD88D214114736C3E6646c7
 | `getSupportedQuoteTokens() pure` | `address[]` | 含 BNB=`0` |
 | `hasDividendLiquidity(address otherToken) view` | `bool` | mode2 分红币校验 |
 | `enableTaxOnBondingCurve() pure` | `bool` | 恒 `true` |
-| `version() pure` | `string` | `cosm-v0.7.0-flap-align` |
+| `version() pure` | `string` | `cosm-v0.7.0`（Portal）；VaultPortal 为 Flap 兼容 `1.12.1` |
 | `vanitySuffixFor(bool isTaxed) view` | `uint16` | 推荐取后缀 |
 | `getFeeRate() view` | `(buy, sell)` | 全局默认买卖协议费 |
 | `getMigrationFeeRate() view` | `(liquidity, reserve)` | 迁移费；默认 `0,0` |
@@ -931,7 +1005,7 @@ python3 tools/find_vanity.py --predict --portal 0x7AdaFe1fD88D214114736C3E6646c7
 |------|------|
 | `TOTAL_SUPPLY()` | `1e9 ether` |
 | `DEX_SUPPLY_THRESH()` | `8e8 ether` | 默认阈值常量；单 token 实际阈值见 `getTokenV8Safe.dexSupplyThresh` |
-| `defaultTaxConverter()` | `address` | Case3 默认 converter = **CosmTaxConverter proxy** `0x103551b34b1e4F5BEFe266Fb6518804b2fda4051` |
+| `defaultTaxConverter()` | `address` | Case3 默认 converter = **CosmTaxConverter proxy** `0xCfC50035c56700D220164417f5f519ED3AEdf347` |
 | `swapRegistry()` | `address` | Case3 SwapRegistry（V2/V3/Infinity CL/V4 · MultiDexRouter） |
 | `BPS()` | `10000` |
 | `vanitySuffixTax()` / `vanitySuffixStandard()` | `0x0111` / `0x0222` |
@@ -970,22 +1044,28 @@ python3 tools/find_vanity.py --predict --portal 0x7AdaFe1fD88D214114736C3E6646c7
 
 ## CosmVaultPortal 方法
 
-地址（proxy）：`0xc87B60222B23A91FaF45716DA19De8408Ad8261d`
+地址（proxy）：`0x9e9e9a2392a379fA03c268098Cd9374d7885c55D`
+
+> **架构：** 薄代理 + Lens / Launch / Tweak 三模块（`delegatecall`，与 CosmPortal Trade/Launch/Migrate 同模式）。前端**只调 proxy**；模块地址见 `deployments/bsc-56.json`（`vaultLens` / `vaultLaunch` / `vaultTweak`）。  
+> **权限：** `AccessControl` — `VAULT_ADMIN_ROLE` 注册工厂与分类；`AUDITOR_ROLE` 工厂 policy / `refreshTokenVault`；`DEFAULT_ADMIN_ROLE` 可授予上述角色。`renounceOwnership()` 会先撤销调用者全部角色再 renounce。
 
 | 方法 | 返回 | 调用方 | 备注 |
 |------|------|--------|------|
-| `newTokenV6WithVault(NewTokenV6WithVaultParams) payable` | `token` | 用户 | 路径 B；`MAGIC_DIVIDEND_COMPUTED` 需 v2.3+ 工厂 |
-| `newTokenV7WithVault(NewTokenV7WithVaultParams) payable` | `token` | 用户 | Flap V7 + feeConfigs + vault · extension · dexThresh |
+| `newTokenV6WithVault(NewTokenV6WithVaultParams) payable` | `token` | 用户 | Flap 布局；`MAGIC_DIVIDEND_COMPUTED` |
+| `newCosmTokenV6WithVault(NewCosmTokenV6WithVaultParams) payable` | `token` | 用户 | **推荐**；含 `dividendMode` / `converter` |
+| `newTokenV7WithVault(NewTokenV7WithVaultParams) payable` | `token` | 用户 | Flap V7 + feeConfigs + vault |
 | `getVault(address taxToken) view` | `VaultInfo` | 前端 | 已知路径 B |
 | `tryGetVault(address taxToken) view` | `(found, VaultInfo)` | 前端 | 不确定时用 |
 | `getVaultFactory(address factory) view` | `VaultFactoryInfo` | 前端 | 选工厂标签 |
 | `getFactoryPolicy(factory) view` | `(policy, policyData, description)` | 前端 | `0=OPEN · 1=TIME_DEPENDENT · 2=DISABLED` |
-| `getVaultCategory` / `getFactoryCategory` | `VaultCategory` | 前端 | 展示标签 |
+| `getCosmVaultCategory` / `getCosmFactoryCategory` | `CosmVaultCategory` | 前端 | 玩法分类（SPLIT/BUYBACK/…） |
+| `getVaultCategory` / `getFactoryCategory` | `VaultCategory` | 前端 | Flap 遗留（仅 `0/1`） |
 | `portal() view` | `CosmPortal` | 前端 | 关联 Portal |
-| `registerVaultFactory(...)` | — | **owner** | 部署注册；默认 policy=OPEN |
-| `disableFactory` / `setTimeDependentPolicy` / `resetFactoryPolicy` | — | **owner** | 工厂权限 |
-| `setVaultCategory` / `setFactoryCategory` | — | **owner** | 重打标签 |
-| `refreshTokenVault(token)` | — | 任意 | 同步缓存 vault ← TaxSplitter.market |
+| `registerVaultFactory(...)` | — | **VAULT_ADMIN_ROLE** | 部署注册；默认 policy=OPEN |
+| `disableFactory` / `setTimeDependentPolicy` / `resetFactoryPolicy` | — | **AUDITOR_ROLE** | 工厂权限 |
+| `setCosmVaultCategory` / `setCosmFactoryCategory` | — | **VAULT_ADMIN_ROLE** | Cosm 分类 |
+| `setVaultCategory` / `setFactoryCategory` | — | **VAULT_ADMIN_ROLE** | Flap 遗留分类 |
+| `refreshTokenVault(token)` | — | **AUDITOR_ROLE** | 同步缓存 vault ← TaxSplitter.market |
 
 事件：`CosmTaxVaultTokenCreated` · `VaultFactoryRegistered` · `FactoryPermissionPolicySet` · `VaultCategoryUpdated` · `FactoryCategoryUpdated` · `TokenVaultRefreshed`
 
@@ -1011,12 +1091,12 @@ python3 tools/find_vanity.py --predict --portal 0x7AdaFe1fD88D214114736C3E6646c7
 
 | vaultType | 工厂地址 | vaultData 编码 |
 |-----------|----------|----------------|
-| `split` | `0x05BF4E0A4F467bba9dd4B77417663c23aAa003b9` | `abi.encode(Recipient[])` · `Recipient{address recipient; uint16 bps}` · 1–10 人去重 · bps 合计 10000 |
-| `scheduled-buyback` | `0xe34E1E13Cdc8cB899870ba9910fA5183d9C74F6d` | `abi.encode(triggerMode, buybackMode, intervalSeconds, minBnbAmount, maxBnbPerTrigger[, firstExecutableAt])` · trigger:`0=time 1=amount+interval 2=both` · buyback:`0=token 1=LP` · `firstExecutableAt` 可选 unix 秒 |
-| `burn-dividend` | `0x38Fd92808A6C20F47aa7dC916c8af34a5f5Fa04a` | 空 `0x` |
-| `lp-staking-dividend` | `0x85EcB0384fbe5f5817de95bE297Aa320876f6B10` | 空 `0x`（pair 发币时 CREATE2 预测，同 `token.pair()`） |
-| `token-staking-dividend` | `0x952A2E58A6C5F90C9F304b5809CCD77e21dFe5Fd` | 空 `0x` |
-| `rank-burn-dividend` | `0xae2c90588fEC3D338fdcDbAbb1DFbacA70b4D16D` | `abi.encode(uint256 minBurnAmount)`；也可空=`0` |
+| `split` | `0xB915d88e2c336e0089e221F0A965aE662092c2f7` | `abi.encode(Recipient[])` · `Recipient{address recipient; uint16 bps}` · 1–10 人去重 · bps 合计 10000 |
+| `scheduled-buyback` | `0x173762B34fcC23E91F0fA49F44f08c7ef4dc3dc5` | `abi.encode(triggerMode, buybackMode, intervalSeconds, minBnbAmount, maxBnbPerTrigger[, firstExecutableAt])` · trigger:`0=time 1=amount+interval 2=both` · buyback:`0=token 1=LP` · `firstExecutableAt` 可选 unix 秒 |
+| `burn-dividend` | `0x1AD1F4F8e46acb907db94E5148Ac95F79c101bcE` | 空 `0x` |
+| `lp-staking-dividend` | `0x54FB535ad9bf86B33079899c5bCfD704D3AcEAEb` | 空 `0x`（pair 发币时 CREATE2 预测，同 `CosmTaxToken.mainPool`） |
+| `token-staking-dividend` | `0x18BF375d070E2ED8d99405773947757b81D73C06` | 空 `0x` |
+| `rank-burn-dividend` | `0xEEBBa479C48540A087D2c720E752AC978fb23787` | `abi.encode(uint256 minBurnAmount)`；也可空=`0` |
 
 ---
 
@@ -1174,7 +1254,7 @@ python3 tools/find_vanity.py --predict --portal 0x7AdaFe1fD88D214114736C3E6646c7
 
 ### `lp-staking-dividend` — LP 质押分红
 
-发币时 factory 已用 CREATE2 预测 PCS V2 pair（与 `TaxToken(token).pair()` / `mainPool` 一致）。**迁移 DEX 后即可** stake LP，无需额外绑 pair。
+发币时 Portal 已将 CREATE2 预测的 PCS V2 pair 置顶为 `pools[0]`（= `CosmTaxToken.mainPool()`）。**迁移 DEX 后即可** stake LP，无需额外绑 pair。
 
 **UISchema：** `stake` · `withdraw` · `claim`（stake 前 `approve(vault, amount)` LP）
 
@@ -1185,7 +1265,7 @@ python3 tools/find_vanity.py --predict --portal 0x7AdaFe1fD88D214114736C3E6646c7
 | `getStatus()` | `StakeStatus` | **首选** · 含 `pair` |
 | `getUserInfo(address user)` | `UserInfo` | **首选** |
 | `pendingReward(address user)` | `uint256` | 待领 BNB |
-| `pair()` | `address` | 发币时预测写入（= `token.pair()`） |
+| `pair()` | `address` | 发币时 CREATE2 预测；同 `CosmTaxToken.mainPool()` |
 | `totalStaked()` / `accRewardPerShare()` / `pendingBnb()` | … | 池子 |
 | `totalRewardsIn()` / `totalClaimed()` / `participantCount()` | … | 统计 |
 | `staked(user)` / `rewardDebt(user)` / `claimed(user)` | `uint256` | 个人 |
@@ -1314,7 +1394,7 @@ BSC **V6 税币**走 PCS V2 + `CosmTaxSplitter`（= Flap `TaxProcessorUniV2`）�
 
 ## CosmTaxConverter 方法（Flap TaxDistributionHelper）
 
-地址（proxy）：`0x103551b34b1e4F5BEFe266Fb6518804b2fda4051`  
+地址（proxy）：`0xCfC50035c56700D220164417f5f519ED3AEdf347`  
 impl 可升级；前端 / keeper **只调 proxy**。
 
 | 方法 | 调用方 | 备注 |
@@ -1335,7 +1415,7 @@ TaxSplitter 内部重逻辑经 **delegatecall** 至链上 `CosmTaxSplitterDispat
 
 ## CosmTriggerService 方法
 
-地址（proxy）：`0xde7B29CA52Be840Eb7621dA9e5F486A47a6fCBb7`  
+地址（proxy）：`0xAeE5Cc03275559Bcd4013E47351C72e00930A9D6`  
 默认：`getFee()=0.0002 ether` · `getMaxCallbackGas()=2_000_000` · 以链上 `getFee()` / `getMaxCallbackGas()` 为准。
 
 scheduled-buyback 金库实现 `ITriggerReceiver.trigger(uint256 requestId)`；keeper 执行 `CosmTriggerService.trigger(requestId)`。
@@ -1417,10 +1497,10 @@ DEX 积税清算：卖到主池且达到 `liquidationThreshold`（无 token 侧 
 
 ```typescript
 export const CHAIN_ID = 56;
-export const PORTAL = "0x7AdaFe1fD88D214114736C3E6646c7087e405759";
-export const VAULT_PORTAL = "0xc87B60222B23A91FaF45716DA19De8408Ad8261d";
-export const TRIGGER_SERVICE = "0xde7B29CA52Be840Eb7621dA9e5F486A47a6fCBb7";
-export const TAX_CONVERTER = "0x103551b34b1e4F5BEFe266Fb6518804b2fda4051";
+export const PORTAL = "0x59E3f460c45Bdb910f27346cFAdF496E91C97AfD";
+export const VAULT_PORTAL = "0x9e9e9a2392a379fA03c268098Cd9374d7885c55D";
+export const TRIGGER_SERVICE = "0xAeE5Cc03275559Bcd4013E47351C72e00930A9D6";
+export const TAX_CONVERTER = "0xCfC50035c56700D220164417f5f519ED3AEdf347";
 export const VANITY_SUFFIX_TAX = 0x0111;
 export const VANITY_SUFFIX_STANDARD = 0x0222;
 
@@ -1433,12 +1513,12 @@ export const QUOTE = {
 } as const;
 
 export const VAULT_FACTORY = {
-  split: "0x05BF4E0A4F467bba9dd4B77417663c23aAa003b9",
-  scheduledBuyback: "0xe34E1E13Cdc8cB899870ba9910fA5183d9C74F6d",
-  burnDividend: "0x38Fd92808A6C20F47aa7dC916c8af34a5f5Fa04a",
-  lpStakingDividend: "0x85EcB0384fbe5f5817de95bE297Aa320876f6B10",
-  tokenStakingDividend: "0x952A2E58A6C5F90C9F304b5809CCD77e21dFe5Fd",
-  rankBurnDividend: "0xae2c90588fEC3D338fdcDbAbb1DFbacA70b4D16D",
+  split: "0xB915d88e2c336e0089e221F0A965aE662092c2f7",
+  scheduledBuyback: "0x173762B34fcC23E91F0fA49F44f08c7ef4dc3dc5",
+  burnDividend: "0x1AD1F4F8e46acb907db94E5148Ac95F79c101bcE",
+  lpStakingDividend: "0x54FB535ad9bf86B33079899c5bCfD704D3AcEAEb",
+  tokenStakingDividend: "0x18BF375d070E2ED8d99405773947757b81D73C06",
+  rankBurnDividend: "0xEEBBa479C48540A087D2c720E752AC978fb23787",
 } as const;
 ```
 
