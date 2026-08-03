@@ -45,7 +45,7 @@ struct TaxAllocation {
     uint256 minimumShareBalance;    // 分红最小持币量（token 最小单位）；dividendBps>0 建议 ≥ 10_000 ether
     uint8 dividendMode;             // 分红发放代币：0=quote · 1=本代币 · 2=其他代币
     address dividendToken;          // dividendMode=2 必填；0/1 填 address(0)
-    uint256 antiFarmerDuration;     // anti-farmer 秒数；迁移后仅 mainPool 收税；0=迁移后全池收税；上限 365 天
+    uint256 antiFarmerDuration;     // anti-farmer 秒数；窗口内全 pools 收税，结束后仅 mainPool；0=跳过窗口；上限 365 天
     uint256 taxDuration;            // 税收总有效期秒数；0=永不过期；>0 须 ≥ antiFarmerDuration；上限约 100 年
     uint16 mktBps2;                 // 从 mktBps 再切分的第二路营销份额
     uint16 mktBps3;                 // 第三路营销份额
@@ -80,7 +80,7 @@ struct LaunchParams {
 
 ```solidity
 struct TokenState {
-    TokenStatus status;             // 生命周期：Invalid=0 · Tradable=1 · DEX=4
+    TokenStatus status;             // 生命周期：Invalid=0 · Tradable=1 · DEX=4（2/3/5 占位不用）
     uint8 tokenVersion;             // 6=CosmTaxToken · 7=CosmToken
     address quoteToken;             // 发币锁定的 quote，交易/税收/迁移均用它
     uint128 reserve;                // 曲线 quote 储备；迁移后清零
@@ -101,6 +101,7 @@ struct TokenState {
     uint8 lpFeeProfile;             // Flap V3LPFeeProfile 枚举值
     uint128 dexSupplyThresh;        // 迁移阈值 token 数量；0=默认 800_000_000 ether
     bytes32 extensionID;            // 扩展插件 ID；无扩展=0
+    uint8 dexId;                    // 发币时 MDR 序号（0=DEX0 · 1/2→MDR index 2）；与 getTokenV8Safe.dexId 语义不同
 }
 ```
 
@@ -125,7 +126,7 @@ struct TokenStateV8Safe {
     address pool;                   // 迁移后 DEX 池地址
     uint256 progress;               // 迁移进度 Wad（1e18=可迁移/已迁移）
     uint8 lpFeeProfile;             // LP 费率档位；V3 常用 0（0.25%）；Infinity 固定 8534ppm
-    uint8 dexId;                    // 2=PCS V2 · 3=PCS V3 · 4=PCS Infinity CL
+    uint8 dexId;                    // 路由 hint（_dexKind）：2=V2 · 3=V3 · 4=Infinity；税币恒 2
 }
 ```
 
@@ -150,7 +151,7 @@ struct TokenStateV9Safe {
     address pool;                   // 迁移后池地址
     uint256 progress;               // 迁移进度 Wad
     uint8 lpFeeProfile;             // LP 费率档位
-    uint8 dexId;                    // DEX 类型 hint
+    uint8 dexId;                    // 同 V8Safe（路由 hint，非 TokenState.dexId）
     uint16 bondingCurveFeeRate;     // V7 曲线协议费 bps；对应 TokenState.bondingCurveFeeBps
 }
 ```
@@ -191,6 +192,11 @@ struct SaltLockEntry {
 
 # CosmVaultPortal
 
+> **部署（BSC 主网 proxy）：** `0x9e9e9a2392a379fA03c268098Cd9374d7885c55D` · 完整地址见 `deployments/bsc-56.json`  
+> **架构：** 薄代理 impl + 三模块 `delegatecall` — **Lens**（只读）、**Launch**（发币）、**Tweak**（工厂/分类/刷新）。proxy 上 immutables：`LENS` · `VAULT_PORTAL_LAUNCH` · `VAULT_PORTAL_TWEAK`；各模块实现 `moduleId()` 绑定校验。  
+> **`inspect()`：** 仅 proxy 内部 `_delegateToLens` 自调用；外部直调 revert。  
+> **权限（AccessControl）：** `VAULT_ADMIN_ROLE` — 注册工厂、设置分类；`AUDITOR_ROLE` — 工厂 policy、`refreshTokenVault`；`renounceOwnership()` 会先撤销调用者全部角色。
+
 ## enum RiskLevel
 
 ```solidity
@@ -203,15 +209,24 @@ enum RiskLevel {
 }
 ```
 
-## enum VaultCategory
+## enum VaultCategory（Flap 遗留 ABI）
 
 ```solidity
 enum VaultCategory {
+    NONE,                    // 0  未分类
+    TYPE_AI_ORACLE_POWERED   // 1  Flap 占位；Cosm 非 NONE 映射到此
+}
+```
+
+## enum CosmVaultCategory
+
+```solidity
+enum CosmVaultCategory {
     NONE,      // 0  未分类
     SPLIT,     // 1  拆分金库（CosmSplitVault）
     BUYBACK,   // 2  回购类（定时回购销毁等）
     DIVIDEND,  // 3  分红类
-    AIRDROP,   // 4  历史占位（omnidrop 已移除）
+    AIRDROP,   // 4  历史占位
     GAME       // 5  游戏类
 }
 ```
@@ -226,30 +241,74 @@ enum FactoryPermissionPolicy {
 }
 ```
 
-## struct NewTokenV6WithVaultParams
+## enum FactoryValidationMode
+
+```solidity
+enum FactoryValidationMode {
+    NONE,      // 0  不校验 factory hook
+    LEGACY_V6, // 1  Flap V6 onBeforeLaunch 布局
+    V22        // 2  扩展校验（含 dividendMode 等）
+}
+```
+
+## struct NewTokenV6WithVaultParams（Flap v1.12.1 包装布局）
 
 ```solidity
 struct NewTokenV6WithVaultParams {
-    string name;                    // 代币名称
-    string symbol;                  // 代币符号
-    string meta;                    // 元数据 URI
-    bytes32 salt;                   // CREATE2 salt；须匹配 tax vanity 后缀
-    address quoteToken;             // 曲线 quote；须被 vaultFactory 支持
-    uint256 quoteAmt;               // 发币同步买入 quote 数量；0=只发不买
-    uint16 buyTaxBps;               // 买入 transfer tax（bps）
-    uint16 sellTaxBps;              // 卖出 transfer tax（bps）
-    uint16 mktBps;                  // 营销份额 → 进金库；须 > 0
-    uint16 deflationBps;            // 回购销毁份额
-    uint16 dividendBps;             // 持币分红份额
-    uint16 lpBps;                   // 加 LP 份额；四路合计须 = 10000
-    uint256 minimumShareBalance;    // 分红最小持币量
-    uint8 dividendMode;             // 分红发放：0=quote · 1=本代币 · 2=其他代币
-    address dividendToken;          // dividendMode=2 或 magic COMPUTED 时解析
-    address converter;              // dividendMode=2 必填（Case3 swap 触发者）
-    uint256 antiFarmerDuration;     // anti-farmer 秒数
-    uint256 taxDuration;            // 税收总有效期秒数
-    address vaultFactory;           // 金库工厂地址
-    bytes vaultData;                // 传给 factory.newVault 的编码参数
+    string name;
+    string symbol;
+    string meta;
+    ICosmPortalTypes.DexThreshType dexThresh;
+    bytes32 salt;
+    ICosmPortalTypes.MigratorType migratorType;   // 税币仍强制 V2
+    address quoteToken;                           // 路径 B 仅 BNB
+    uint256 quoteAmt;
+    bytes permitData;
+    bytes32 extensionID;
+    bytes extensionData;
+    ICosmPortalTypes.DEXId dexId;
+    ICosmPortalTypes.V3LPFeeProfile lpFeeProfile;
+    uint16 buyTaxRate;
+    uint16 sellTaxRate;
+    uint64 taxDuration;
+    uint64 antiFarmerDuration;
+    uint16 mktBps;                                // 须 > 0
+    uint16 deflationBps;
+    uint16 dividendBps;
+    uint16 lpBps;
+    uint256 minimumShareBalance;
+    address dividendToken;                        // 0/SELF/COMPUTED magic；无 dividendMode 字段
+    address commissionReceiver;
+    ICosmPortalTypes.TokenVersion tokenVersion;   // 6=税币
+    address vaultFactory;
+    bytes vaultData;
+}
+```
+
+## struct NewCosmTokenV6WithVaultParams（Cosm 简化入口）
+
+```solidity
+struct NewCosmTokenV6WithVaultParams {
+    string name;
+    string symbol;
+    string meta;
+    bytes32 salt;
+    address quoteToken;
+    uint256 quoteAmt;
+    uint16 buyTaxBps;
+    uint16 sellTaxBps;
+    uint16 mktBps;
+    uint16 deflationBps;
+    uint16 dividendBps;
+    uint16 lpBps;
+    uint256 minimumShareBalance;
+    uint8 dividendMode;             // 0=quote · 1=本代币 · 2=其他代币
+    address dividendToken;
+    address converter;              // dividendMode=2 必填
+    uint256 antiFarmerDuration;
+    uint256 taxDuration;
+    address vaultFactory;
+    bytes vaultData;
 }
 ```
 
@@ -257,27 +316,27 @@ struct NewTokenV6WithVaultParams {
 
 ```solidity
 struct NewTokenV7WithVaultParams {
-    string name;                              // 代币名称
-    string symbol;                            // 代币符号
-    string meta;                              // 元数据 URI
-    bytes32 salt;                             // CREATE2 salt
-    address quoteToken;                       // 曲线 quote
-    uint256 quoteAmt;                         // 发币同步买入数量
-    IFlapPortalTypes.DexThreshType dexThresh; // 迁移阈值档位（默认 8e8 token 等）
-    IFlapPortalTypes.MigratorType migratorType; // 迁移器；税币仍强制 V2
-    bytes permitData;                         // 可选 ERC20 permit
-    bytes32 extensionID;                      // 扩展插件 ID；默认 0
-    bytes extensionData;                      // 扩展插件回调数据
-    IFlapPortalTypes.TokenVersion tokenVersion; // 6=税币 · 7=普通币
-    IFlapPortalTypes.DEXId dexId;             // DEX hint：2=V2 · 3=V3 · 4=Infinity
-    uint64 antiFarmerDuration;                // anti-farmer 秒数（仅税币）
-    uint16 buyTaxRate;                        // 买入 tax bps；0=普通无税币
-    uint16 sellTaxRate;                       // 卖出 tax bps
-    uint64 taxDuration;                       // 税收有效期（仅税币）
-    address commissionReceiver;               // 佣金接收；0=无佣金
-    IFlapPortalTypes.FeeConfig[4] feeConfigs; // 四路 fee 配置；mkt 路最终指向 vault
-    address vaultFactory;                     // 金库工厂地址
-    bytes vaultData;                          // factory.newVault 编码参数
+    string name;
+    string symbol;
+    string meta;
+    ICosmPortalTypes.DexThreshType dexThresh;
+    bytes32 salt;
+    ICosmPortalTypes.MigratorType migratorType;
+    address quoteToken;
+    uint256 quoteAmt;
+    bytes permitData;
+    bytes32 extensionID;
+    bytes extensionData;
+    ICosmPortalTypes.TokenVersion tokenVersion;
+    ICosmPortalTypes.DEXId dexId;
+    uint64 antiFarmerDuration;
+    uint16 buyTaxRate;
+    uint16 sellTaxRate;
+    uint64 taxDuration;
+    address commissionReceiver;
+    ICosmPortalTypes.FeeConfig[4] feeConfigs;
+    address vaultFactory;
+    bytes vaultData;
 }
 ```
 
@@ -285,11 +344,13 @@ struct NewTokenV7WithVaultParams {
 
 ```solidity
 struct VaultFactoryInfo {
-    bool registered;        // 是否经 owner registerVaultFactory 注册
-    bool enabled;           // 是否允许发币
-    bool official;          // 是否官方认证工厂
-    RiskLevel riskLevel;    // 风险等级
-    VaultCategory category; // 工厂默认金库类型
+    bool registered;
+    bool enabled;
+    bool official;
+    RiskLevel riskLevel;
+    CosmVaultCategory category;           // 用 getCosmFactoryCategory 读
+    FactoryPermissionPolicy permissionPolicy;
+    FactoryValidationMode validationMode;
 }
 ```
 
@@ -297,12 +358,12 @@ struct VaultFactoryInfo {
 
 ```solidity
 struct VaultInfo {
-    address vault;          // 金库合约地址（路径 B 的 marketing 收款方）
-    bool isOfficial;        // 是否官方工厂创建
-    RiskLevel riskLevel;    // 发币时工厂风险等级
-    VaultCategory category; // 金库类型
-    address vaultFactory;   // 创建该金库的工厂
-    string description;     // 金库 description()
+    address vault;
+    address vaultFactory;
+    string description;
+    bool isOfficial;
+    RiskLevel riskLevel;
+    // 分类另调 getCosmVaultCategory(taxToken) / getVaultCategory（Flap 遗留）
 }
 ```
 
