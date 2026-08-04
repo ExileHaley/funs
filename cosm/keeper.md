@@ -56,16 +56,16 @@ flowchart TB
 
 ## 3. 部署地址（BSC mainnet）
 
-> **2026-08-05 全量重部署** · `cosm-v0.7.0` · 旧批次（`0x59E3f460…` 等）已废弃。  
+> **2026-08-05 全量重部署** · `cosm-v0.7.0` · 旧批次（`0x18394A43…` / `0x59E3f460…` 等）已废弃。  
 > 来自 `deployments/bsc-56.json`（升级后以链上为准）：
 
 | 合约 | 地址 | Keeper 用途 |
 |------|------|-------------|
-| CosmPortal (proxy) | `0x18394A43676D8611333347b3332386bDbd59B8B4` | `getToken` 查 taxSplitter / dividend |
-| CosmTaxConverter (proxy) | `0x4f5e473801cEFE63BC8657125f6942C10669a337` | 批量 dispatch / 分红 |
-| CosmTriggerService (proxy) | `0xf0F5d1BDa763eb12Ff22AF8d205680541c7E6575` | 定时回购金库 callback |
-| CosmVaultPortal (proxy) | `0x52F562c520F4B4Cc9390c11e61e8CFA97cB4405b` | 查金库 `tryGetVault` |
-| CosmScheduledBuybackVaultFactory | `0x174D4e8B0D9eaE0c3f4ffE6A7f16E7280718F8a6` | 识别 scheduled-buyback 金库 requester |
+| CosmPortal (proxy) | `0x80a692e4cA49c060395D039735ef1D7777550e44` | `getToken` 查 taxSplitter / dividend |
+| CosmTaxConverter (proxy) | `0x0414B1E6741454C8eEd6b44dFC88C01c41275648` | 批量 dispatch / 分红 |
+| CosmTriggerService (proxy) | `0x6ef4eAd6966b684c2C229849F65eEe1E6507546b` | 定时回购金库 callback |
+| CosmVaultPortal (proxy) | `0x968bfb1e75De86a38746EC57F43aBccD0A8EEc83` | 查金库 `tryGetVault` |
+| CosmScheduledBuybackVaultFactory | `0x740C9c51Cc91748bAD045E7eD5866355B12D6347` | 识别 scheduled-buyback 金库 requester |
 
 `TriggerService.getFee()` 默认 **0.0002 BNB**（以链上为准）；`feeReceiver` 读 `Portal.feeReceiver()`（与 Trigger 初始化一致）。
 
@@ -132,7 +132,7 @@ Lite 识别：`feeConfig().marketBps + deflationBps + dividendBps + lpBps` 四�
 
 监听 `TokenProgressChanged` 或轮询 `getTokenV8Safe(token).status`：
 
-- `status == 4`（DEX）→ `feeRate` 已在 migrate 时改为 **4100**（41%）
+- `status == 4`（DEX）→ `feeRate` 仍为 **1000**（migrate 时 `setFeeRate(1000)`，与 curve 相同）
 - DEX 后 tax 走 `processTaxTokens`，仍要 keeper `dispatch`
 
 ---
@@ -270,7 +270,7 @@ event FlapTaxProcessorDispatchExecuted(...);
 |------|--------|------|
 | `TokenCreated(...)` | `0x504e7f36...` | 新代币，补 `getToken` |
 | `TokenProgressChanged(address,uint256)` | `0xbefe9b7d...` | 迁移进度；progress=1e18 时可关注 migrate |
-| `FeeRateUpdated(uint16,uint16)` | — | migrate 后 6000→4100 |
+| `FeeRateUpdated(uint16,uint16)` | — | migrate 时若旧 token 非 1000 会修正为 1000 |
 
 ### 7.3 V4 LP 费信号（普通 Infinity 币）
 
@@ -491,11 +491,11 @@ func (t *TokenJob) RefreshPending(ctx context.Context, split *splitter.TaxSplitt
 ```yaml
 chain_id: 56
 rpc_url: "https://bsc-dataseed.binance.org"
-portal: "0x18394A43676D8611333347b3332386bDbd59B8B4"
-converter: "0x4f5e473801cEFE63BC8657125f6942C10669a337"
-trigger_service: "0xf0F5d1BDa763eb12Ff22AF8d205680541c7E6575"
-vault_portal: "0x52F562c520F4B4Cc9390c11e61e8CFA97cB4405b"
-scheduled_buyback_factory: "0x174D4e8B0D9eaE0c3f4ffE6A7f16E7280718F8a6"
+portal: "0x80a692e4cA49c060395D039735ef1D7777550e44"
+converter: "0x0414B1E6741454C8eEd6b44dFC88C01c41275648"
+trigger_service: "0x6ef4eAd6966b684c2C229849F65eEe1E6507546b"
+vault_portal: "0x968bfb1e75De86a38746EC57F43aBccD0A8EEc83"
+scheduled_buyback_factory: "0x740C9c51Cc91748bAD045E7eD5866355B12D6347"
 
 # 私钥：dispatcher 需 Converter DISPATCHER_ROLE；trigger 需 TRIGGER_ROLE
 # permissionless 可用任意有 gas 的 EOA 调 batchDispatchPermissionless
@@ -538,8 +538,8 @@ start_block: 0
 
 | 项 | 值 |
 |----|-----|
-| 发币 `feeRate` | 6000（60%） |
-| 迁移后 `feeRate` | 4100（41%），migrate 时 Portal 自动 `setFeeRate` |
+| 发币 `feeRate` | **1000**（10% of tax） |
+| 迁移后 `feeRate` | **1000**（与 curve 相同；migrate 时 Portal 调 `setFeeRate`） |
 | 批量入口 | `CosmTaxConverter`（Flap 同款 ABI） |
 | 事件 | 同时发 `Flap*` 与 `Cosm*` 别名，订阅其一即可 |
 
