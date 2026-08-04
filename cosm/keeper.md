@@ -83,6 +83,7 @@ type TokenJob struct {
     DividendMode  uint8          // 0=quote · 1=本币 · 2=其他 ERC20
     Converter     common.Address // dividendMode=2 时 dispatch swap 授权地址
     Vault         common.Address // 路径 B 金库，0=钱包 beneficiary
+    VaultType     string         // 金库玩法："" · split · scheduled-buyback · burn-dividend · rank-burn-dividend · …
     QuoteToken    common.Address // 曲线 quote，0=BNB
     Status        uint8          // TokenStatus：1=Tradable · 4=DEX
     RequiresMEV   bool           // requiresMEVProtection()
@@ -295,6 +296,18 @@ Keeper 可先调 `checkAndNotifyDispatch()`（selector `0x52ddd8a5`），再 `di
 | `FlapDividendDeposited(taxToken, amount, ...)` | dispatch 打入分红 |
 | `FlapDividendDistributed(taxToken, user, amount)` | 用户已结算 |
 
+### 7.6 触发 scheduled-buyback（TriggerService）
+
+| 事件 | indexed | 说明 |
+|------|---------|------|
+| `CosmTriggerRequested(requestId, requester, executeAfter, feePaid)` | requestId · requester | 金库 `requestTrigger` 后；**requester = 金库地址** |
+| `FlapTriggerRequested(...)` | 同上 | Flap 别名，参数相同 |
+| `CosmTriggerExecuted(requestId, success, data)` | requestId | keeper `trigger` 回调结果 |
+| `CosmTriggerSkipped(requestId, reason)` | requestId | 过早 / 非 PENDING 等，本轮未回调 |
+| `TriggerScheduled(requestId, executeAfter)` | requestId | 金库侧：已写入 `pendingRequestId` |
+| `ScheduledBuyback(bnbSpent, burnedAmount, ...)` | — | 金库侧：回购成功 |
+| `Deposited(from, amount)` | from | 金库收到 BNB（含 dispatch 后入账） |
+
 ---
 
 ## 8. 分红 Keeper（可选）
@@ -319,28 +332,201 @@ CosmTaxConverter.batchDistributeDividend(
 
 ---
 
-## 9. Trigger Keeper（定时回购金库）
+## 9. Trigger Keeper（`CosmScheduledBuybackVault`）
 
-`CosmScheduledBuybackVault` 通过 **CosmTriggerService** 回调：
+`CosmScheduledBuybackVault`（`vaultType = scheduled-buyback`）通过 **CosmTriggerService** 回调执行 PCS 回购销毁。  
+**与 dispatch 的关系：** 前半段相同（tax 须先 `dispatch` 进金库）；后半段是 **第二条 keeper 任务**，调 `TriggerService` 而非 `TaxSplitter`。
 
-```solidity
-// 需 TRIGGER_ROLE
-TriggerService.trigger(uint256 requestId);           // 0xed684cc6
-TriggerService.triggerMultiple(uint256[] requestIds); // 0xc39b4b6b
+### 9.1 与 dispatch 对比
+
+| | **TaxSplitter.dispatch** | **TriggerService.trigger** |
+|--|--------------------------|----------------------------|
+| 调用对象 | `getToken(token).taxSplitter` | `CosmTriggerService` proxy |
+| 权限 | permissionless | **`TRIGGER_ROLE`** |
+| 作用 | 累账 tax → 打到 mkt/金库/分红 | 到点回调金库 → PCS 回购销毁 |
+| 谁发起预约 | — | **金库**在 `receive()` / 回调末尾调 `requestTrigger` |
+| 适用 token | **所有有税币** | **仅** `scheduled-buyback` 金库 |
+
+**不要** EOA 直调 `vault.trigger()`（revert `only trigger service`）；**不要**把 `CosmTriggerRequested` 和 `BondingCurveTax` 混为同一任务。
+
+### 9.2 完整调用路径
+
+```text
+用户买卖
+  → TaxSplitter 累账（marketQuoteBalance 等）
+       ↓
+【Keeper ①】taxSplitter.dispatch()          ← 与 §6 相同
+       ↓
+  BNB → CosmScheduledBuybackVault（market 地址）
+       ↓
+  vault.receive() → _tryScheduleTrigger()
+       ↓
+  vault 付 getFee() BNB → triggerService.requestTrigger(executeAfter)
+       ↓
+  事件 CosmTriggerRequested（requester = vault）
+       ↓
+【Keeper ②】triggerService.trigger(requestId)   ← TRIGGER_ROLE
+       ↓
+  TriggerService → vault.trigger(requestId)
+       ↓
+  canTrigger() ? _executeBuyback() : 仅推进时间窗
+       ↓
+  _tryScheduleTrigger() 预约下一轮
 ```
 
-**ROLE**
+```mermaid
+sequenceDiagram
+    participant K as Keeper
+    participant TS as TaxSplitter
+    participant V as ScheduledBuybackVault
+    participant TR as TriggerService
+
+    K->>TS: dispatch()
+    TS->>V: BNB transfer
+    V->>TR: requestTrigger(fee)
+    Note over K: 监听 CosmTriggerRequested
+    K->>TR: trigger(requestId)
+    TR->>V: trigger(requestId)
+    V->>V: PCS buyback burn
+    V->>TR: requestTrigger (next round)
+```
+
+### 9.3 何时该 trigger
+
+对 **scheduled-buyback** 金库，**同时满足** 再发 tx：
+
+```solidity
+// 1. TriggerService：时间窗已到且仍为 PENDING
+triggerService.isRequestReady(requestId) == true
+
+// 2. 金库：余额与 triggerMode 条件满足（见 canTrigger）
+vault.getStatus().ready == true
+
+// 3. 金库仍有 pending 预约
+vault.pendingRequestId() == requestId  // 非 0，且与事件一致
+```
+
+`canTrigger()`（金库 view，keeper 通过 `getStatus().ready` 读）：
+
+| triggerMode | 条件 |
+|-------------|------|
+| `0` 按时间 | `block.timestamp >= lastTriggeredAt + intervalSeconds` 且 `_buybackBalance() > 0` |
+| `1` 按金额 | 余额 ≥ `minBnbAmount` 且满足最小间隔 |
+| `2` 时间+金额 | 两者都满足 |
+
+`_buybackBalance()` = 金库 BNB 余额 − `triggerService.getFee()`（默认 **0.0002 BNB** 须留给下一轮预约）。
+
+**推荐策略**
+
+1. **事件驱动**：`CosmTriggerRequested` 且 `requester` 在注册表（或 factory = scheduled-buyback）→ 写入 trigger 队列
+2. **轮询兜底**：每 1–2 分钟扫 `getRequestsByRequesterPaginated(vault)` 或注册表内 `pendingRequestId`
+3. **合并执行**：同一区块多金库 → `triggerMultiple([id1, id2, ...])`
+
+### 9.4 调用方式
+
+**单笔（常用）**
+
+```solidity
+// 需 TRIGGER_ROLE；selector 0xed684cc6
+ICosmTriggerService(triggerService).trigger(requestId);
+// keeper 钱包 gas 自付；回调 gas 上限 getMaxCallbackGas()（默认 2_000_000）
+```
+
+**批量**
+
+```solidity
+TriggerService.triggerMultiple(uint256[] requestIds);  // 0xc39b4b6b
+```
+
+**失败重试**（仅 FAILED）
+
+```solidity
+TriggerService.retryTrigger(requestId);  // permissionless；OOG 等
+```
+
+**金库聚合 view（单次 eth_call）**
+
+```solidity
+BuybackStatus memory s = vault.getStatus();
+// s.ready · s.pendingRequestId · s.countdownSeconds · s.vaultBnb · s.nextSpendBnb · …
+```
+
+### 9.5 链上回调行为（`vault.trigger`）
+
+仅 `msg.sender == triggerService` 可进入：
+
+1. 清除匹配的 `pendingRequestId`
+2. 若 `canTrigger()` → `_executeBuyback()`（Token 或 LP 回购；LP 失败 fallback Token）
+3. 更新 `lastTriggeredAt`（即使 burn 失败也推进，避免 `executeAfter=0` 热循环刷 fee）
+4. `_tryScheduleTrigger()`：余额 ≥ fee 则再 `requestTrigger`
+
+回购 BNB 来源 = 金库余额 − 预约费；单次上限 `maxBnbPerTrigger`（0 = 无 cap）。
+
+### 9.6 注册 scheduled-buyback 代币
+
+路径 B 发币后：
+
+```solidity
+(bool found, VaultInfo memory info) = vaultPortal.tryGetVault(token);
+// found && vault.vaultType() == "scheduled-buyback"
+address vaultAddr = info.vault;
+```
+
+或监听 `CosmTaxVaultTokenCreated`，再读金库 `vaultType()` / `factory()` 是否等于 `scheduled_buyback_factory`。
+
+`TokenJob` 建议字段：`VaultType = "scheduled-buyback"`，`Vault = vaultAddr`；**仍须**对同 token 的 `taxSplitter` 跑 dispatch。
+
+### 9.7 Go 伪代码
+
+```go
+func runTriggerBatch(ctx context.Context, client *ethclient.Client, reg *registry.Registry) {
+    ts, _ := trigger.NewTriggerService(cfg.TriggerService, client)
+    auth := bindOpts(cfg.TriggerPrivateKey) // TRIGGER_ROLE
+
+    var ids []uint64
+    for _, job := range reg.ScheduledBuybackVaults() {
+        vault, _ := buyback.NewScheduledBuybackVault(job.Vault, client)
+        st, _ := vault.GetStatus(nil)
+        if st.PendingRequestId == 0 || !st.Ready {
+            continue
+        }
+        rid := st.PendingRequestId
+        ready, _ := ts.IsRequestReady(nil, rid)
+        if !ready {
+            continue
+        }
+        ids = append(ids, rid.Uint64())
+    }
+    if len(ids) == 0 {
+        return
+    }
+    if len(ids) == 1 {
+        ts.Trigger(auth, ids[0])
+    } else {
+        ts.TriggerMultiple(auth, ids)
+    }
+}
+
+func onTriggerRequested(vault common.Address, requestId uint64, reg *registry.Registry) {
+    // requester 必须是已知 scheduled-buyback 金库
+    reg.EnqueueTrigger(vault, requestId)
+}
+```
+
+主循环（§11.3）在 `runDispatchBatch` **之后**调 `runTriggerBatch`：先 dispatch 注资库，再 trigger 回购。
+
+### 9.8 ROLE 与配置
 
 ```text
 TRIGGER_ROLE = 0xc8380a9ed3810df5e9faa1cdd29581f1ee3bb82654546cebc42c97aaa1ee54d1
 DISPATCHER_ROLE = 0xfbd38eecf51668fdbc772b204dc63dd28c3a3cf32e3025f52a80aa807359f50c
 ```
 
-**发现待执行请求**
+**告警**
 
-- 监听 `CosmTriggerRequested(requestId, requester, executeAfter, feePaid)`
-- 轮询：`getRequestCount()` + `isRequestReady(id)`
-- 金库 view：`ScheduledBuybackVault.getStatus().ready == true` 且 `pendingRequestId != 0`
+- 金库 `vaultBnb` 长期 > `minBnbAmount` 但 `triggerCount` 不增 → 查 `TRIGGER_ROLE` / `isRequestReady` / `canTrigger`
+- `CosmTriggerExecuted(success=false)` → `retryTrigger` 或人工查 PCS 流动性
+- 金库 BNB < `getFee()` → 无法 `_tryScheduleTrigger`，需等 dispatch 或用户充值
 
 ---
 
@@ -452,6 +638,7 @@ func onTokenCreated(ctx context.Context, portal *portal.Portal, token common.Add
     reg.Upsert(&TokenJob{
         Token: token, TaxSplitter: st.TaxSplitter, Dividend: st.Dividend,
         DividendMode: mode, Converter: conv, Vault: st.Vault,
+        VaultType: resolveVaultType(st.Vault), // VaultPortal.tryGetVault + vault.vaultType()
         QuoteToken: st.QuoteToken, RequiresMEV: mev,
     })
     return nil
@@ -524,7 +711,8 @@ start_block: 0
 | `dispatch_success_rate` | `CosmDispatchCalled(success=true)` 比例 |
 | `dispatch_latency` | 入账事件 → DispatchExecuted 延迟 |
 | `registry_token_count` | 注册税币数量 |
-| `trigger_ready_count` | `isRequestReady==true` 请求数 |
+| `trigger_ready_count` | `isRequestReady==true` 且金库 `getStatus().ready` 的请求数 |
+| `buyback_vault_bnb_stale` | scheduled 金库有余额但 `triggerCount` 长期不增 |
 
 **告警条件**
 
@@ -552,7 +740,9 @@ start_block: 0
 - [ ] 监听 `BondingCurveTax` / `ProcessTaxTokens` 触发 debounced dispatch
 - [ ] `requiresMEVProtection` 代币走 `batchDispatch`，其余走 permissionless
 - [ ] dividendMode=2 配置 converter 私钥
-- [ ] 可选：`batchDistributeDividend` + Trigger 定时回购
+- [ ] 可选：`batchDistributeDividend`
+- [ ] **`scheduled-buyback`**：`CosmTriggerRequested` + `getStatus().ready` → `trigger` / `triggerMultiple`
+- [ ] scheduled-buyback：**先 dispatch 再 trigger**（同 token 两条链）
 - [ ] Gas / nonce / 失败重试 / Prometheus 指标
 
 ---
@@ -565,6 +755,7 @@ start_block: 0
 | `contracts/tax/CosmTaxSplitterDispatch.sol` | dispatch 内部逻辑 |
 | `contracts/tax/CosmTaxConverter.sol` | 批量 dispatch / 分红 |
 | `contracts/CosmTriggerService.sol` | 定时 callback |
+| `contracts/vault/templates/CosmScheduledBuybackVault.sol` | 回购金库 · `ITriggerReceiver` |
 | `contracts/portal/CosmPortal.sol` | `getToken` |
 | `deployments/bsc-56.json` | 主网地址 |
 
@@ -696,3 +887,34 @@ DEX 阶段 **TaxToken 自动**调 `processTaxTokens()`（Keeper 不参与）；K
 5. Keeper 对 `0xDEF` 调 `dispatch()`
 6. `DispatchExecuted(0xABC, …)` → 金库 / feeReceiver 等到账
 
+### 17.10 scheduled-buyback 完整例子
+
+1. `CosmTaxVaultTokenCreated` → `token = 0xABC…`，`vault = 0xVAULT…`，`vaultType = scheduled-buyback`
+2. `getToken(0xABC)` → `taxSplitter = 0xDEF…`
+3. 用户买卖 → `BondingCurveTax(0xABC, …)`
+4. Keeper ①：`0xDEF.dispatch()` → BNB 到 `0xVAULT`
+5. 金库 `Deposited` + `CosmTriggerRequested(requestId, requester=0xVAULT, …)`
+6. `vault.getStatus()` → `ready=true`，`pendingRequestId=requestId`
+7. Keeper ②：`triggerService.trigger(requestId)`（**TRIGGER_ROLE**）
+8. `ScheduledBuyback(...)` + 新的 `TriggerScheduled`（下一轮）
+
+**rank-burn / burn-dividend / staking 等：** 只需步骤 1–6 的 **dispatch**；玩法由用户 `burn` / `claim` / `stake`，**无 §9 trigger**。
+
+---
+
+## 18. 金库类型与 Keeper 职责
+
+| vaultType | dispatch keeper | Trigger keeper | 金库合约写操作 |
+|-----------|-----------------|----------------|----------------|
+| `scheduled-buyback` | ✅ 税进金库 | ✅ **§9** | 无（全自动 callback） |
+| `split` | ✅ | ❌ | 用户 `claim`；可选 `dispatch` 代领 |
+| `burn-dividend` | ✅ | ❌ | 用户 `burn` / `claim` |
+| `rank-burn-dividend` | ✅ | ❌ | 用户 `burn` / `claim`；20% 榜在 `burn()` 时分配 |
+| `token-staking-dividend` | ✅ | ❌ | 用户 `stake` / `withdraw` / `claim` |
+| `lp-staking-dividend` | ✅ | ❌ | 同上（LP） |
+
+路径 A（无金库）：仅 **dispatch**（mkt 进钱包）；`Vault = 0`。
+
+识别：`VaultPortal.tryGetVault(token)` → `vault.vaultType()`；或注册表在发币时写入 `TokenJob.VaultType`。
+
+---
