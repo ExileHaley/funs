@@ -586,10 +586,10 @@ Invalid(0) ──发币成功──► Tradable(1) ──达阈值/手动迁移�
 |----|------|----------|
 | `0` | `Invalid` | 未发行 / 未知地址 |
 | `1` | `Tradable` | 曲线阶段，买卖走 Portal 曲线 |
-| `2` | `InDuel` | 占位（不用） |
-| `3` | `Killed` | 占位（不用） |
+| `2` | `InDuel` | Flap 占位（Cosm BSC 不用） |
+| `3` | `Killed` | Flap 占位（Cosm BSC 不用） |
 | `4` | `DEX` | 已迁移，买卖仍走 Portal（内部转发 PCS V2 / V3 / Infinity） |
-| `5` | `Staged` | 占位（不用） |
+| `5` | `Staged` | SaleForge `stageNewTokenV5` 预占；`commit` 后变 `Tradable` |
 
 ### `FeeProfile` — 协议费档位（`getToken.feeProfile`）
 
@@ -617,11 +617,11 @@ Invalid(0) ──发币成功──► Tradable(1) ──达阈值/手动迁移�
 | `minimumShareBalance` | `uint256` | 分红最低持仓（代币最小单位）。`dividendBps>0` 时建议 ≥ `10000e18`；持仓低于此份额记 0 |
 | `dividendMode` | `uint8` | 分红发放币种：`0`=quote（BNB 时为 WBNB 再 unwrap）· `1`=本税币 · `2`=其他 ERC20 |
 | `dividendToken` | `address` | 仅 `dividendMode=2` 必填；mode 0/1 填 `address(0)`。mode2 发币前调 `Portal.hasDividendLiquidity(token)` |
-| `converter` | `address` | 仅 `dividendMode=2` 必填；Case3 MEV 兑换员。**须为** `CosmTaxConverter` proxy（或等效 helper），由它调 `TaxSplitter.dispatch` 兑 quote→分红币；发币留空则用 `Portal.defaultTaxConverter()`。mode 0/1 填 `0` |
 | `antiFarmerDuration` | `uint256` | 迁移后 anti-farmer 秒数。窗口内全 `pools` 收税，结束后仅 `mainPool`。`0`=跳过窗口；上限 365 天 |
 | `taxDuration` | `uint256` | 收税总时长（秒，含 anti-farmer）。`0`=永不过期；若 >0 须 ≥ `antiFarmerDuration`；上限约 100 年 |
 | `mktBps2/3/4` | `uint16` | 从 `mktBps` 划出；合计 ≤ `mktBps`；默认 0 |
 | `market2/3/4` | `address` | 对应收款地址；bps>0 时必填 |
+| `converter` | `address` | 仅 `dividendMode=2` 必填；Case3 MEV 兑换员。**须为** `CosmTaxConverter` proxy（或等效 helper），由它调 `TaxSplitter.dispatch` 兑 quote→分红币；发币留空则用 `Portal.defaultTaxConverter()`。mode 0/1 填 `0` |
 
 ```solidity
 struct TaxAllocation {
@@ -813,7 +813,7 @@ struct SaltLockEntry {
 
 | 字段 | 类型 | 前端备注 |
 |------|------|----------|
-| `status` | `TokenStatus` | 对齐 Flap：`0` Invalid · `1` Tradable · `4` DEX（2/3/5 占位不用） |
+| `status` | `TokenStatus` | `0` Invalid · `1` Tradable · `4` DEX · `5` Staged（SaleForge）；`2`/`3` 占位不用 |
 | `tokenVersion` | `uint8` | `6`=CosmTaxToken · `7`=CosmToken |
 | `quoteToken` | `address` | 发币锁定的 quote；BNB=`0` |
 | `reserve` | `uint128` | 曲线 quote 储备；迁移后清零 |
@@ -871,7 +871,7 @@ struct TokenState {
 
 | 字段 | 类型 | 前端备注 |
 |------|------|----------|
-| `status` | `uint8` | 同 TokenStatus：`0/1/4`（DEX） |
+| `status` | `uint8` | 同 TokenStatus：`0`/`1`/`4`/`5`（`2`/`3` 占位） |
 | `reserve` | `uint256` | 曲线 quote 储备 |
 | `circulatingSupply` | `uint256` | 流通供给 |
 | `price` | `uint256` | 当前曲线单价（quote wei / 1 token）；DEX 阶段用阈值供给估算 |
@@ -924,8 +924,25 @@ struct TokenStateV8Safe {
 
 ```solidity
 struct TokenStateV9Safe {
-    // ... 同 TokenStateV8Safe ...
-    uint16 bondingCurveFeeRate;
+    uint8 status;
+    uint256 reserve;
+    uint256 circulatingSupply;
+    uint256 price;
+    uint8 tokenVersion;
+    uint256 r;
+    uint256 h;
+    uint256 k;
+    uint256 dexSupplyThresh;
+    address quoteTokenAddress;
+    bool nativeToQuoteSwapEnabled;
+    bytes32 extensionID;
+    uint256 buyTaxRate;
+    uint256 sellTaxRate;
+    address pool;
+    uint256 progress;
+    uint8 lpFeeProfile;
+    uint8 dexId;
+    uint16 bondingCurveFeeRate; // = getToken.bondingCurveFeeBps
 }
 ```
 
@@ -977,7 +994,7 @@ struct TokenStateV9Safe {
 | `vaultFactory` | `address` | 创建工厂；`tryGetVault` 回退读可能为 `0` |
 | `description` | `string` | 金库文案 |
 | `isOfficial` | `bool` | 是否官方工厂 |
-| `riskLevel` | `RiskLevel` | `0` UNVERIFIED · `1` LOW_RISK · `2` LOW_MEDIUM · `3` MEDIUM · `4` HIGH |
+| `riskLevel` | `RiskLevel` | `0` UNVERIFIED · `1` LOW_RISK · `2` LOW_MEDIUM_RISK · `3` MEDIUM_RISK · `4` HIGH_RISK |
 
 分类另调 `getCosmVaultCategory(token)`（`0` NONE · `1` SPLIT · `2` BUYBACK · `3` DIVIDEND · `4` AIRDROP · `5` GAME）或 Flap 遗留 `getVaultCategory`（仅 `0/1`）。
 
