@@ -61,11 +61,11 @@ flowchart TB
 
 | 合约 | 地址 | Keeper 用途 |
 |------|------|-------------|
-| CosmPortal (proxy) | `0x80a692e4cA49c060395D039735ef1D7777550e44` | `getToken` 查 taxSplitter / dividend |
-| CosmTaxConverter (proxy) | `0x0414B1E6741454C8eEd6b44dFC88C01c41275648` | 批量 dispatch / 分红 |
-| CosmTriggerService (proxy) | `0x6ef4eAd6966b684c2C229849F65eEe1E6507546b` | 定时回购金库 callback |
-| CosmVaultPortal (proxy) | `0x968bfb1e75De86a38746EC57F43aBccD0A8EEc83` | 查金库 `tryGetVault` |
-| CosmScheduledBuybackVaultFactory | `0x740C9c51Cc91748bAD045E7eD5866355B12D6347` | 识别 scheduled-buyback 金库 requester |
+| CosmPortal (proxy) | `0xb6577cc36c2DF07A495fE4c0D035a1fba4C0bF04` | `getToken` 查 taxSplitter / dividend |
+| CosmTaxConverter (proxy) | `0x1F436C71c19503E0e250B379477fF24c2F8a7a1d` | 批量 dispatch / 分红 |
+| CosmTriggerService (proxy) | `0x3586cdEffc8DB9CF61b39A900c301e7DeCfAb147` | 定时回购金库 callback |
+| CosmVaultPortal (proxy) | `0xAacb271eB9f1b2b32874f7CEc8367e54c7C4e0D5` | 查金库 `tryGetVault` |
+| CosmScheduledBuybackVaultFactory | `0xf0B41a6C11BbdfCD10Bf1bC395e56Fe93Ce8F3f5` | 识别 scheduled-buyback 金库 requester |
 
 `TriggerService.getFee()` 默认 **0.0002 BNB**（以链上为准）；`feeReceiver` 读 `Portal.feeReceiver()`（与 Trigger 初始化一致）。
 
@@ -678,11 +678,11 @@ func (t *TokenJob) RefreshPending(ctx context.Context, split *splitter.TaxSplitt
 ```yaml
 chain_id: 56
 rpc_url: "https://bsc-dataseed.binance.org"
-portal: "0x80a692e4cA49c060395D039735ef1D7777550e44"
-converter: "0x0414B1E6741454C8eEd6b44dFC88C01c41275648"
-trigger_service: "0x6ef4eAd6966b684c2C229849F65eEe1E6507546b"
-vault_portal: "0x968bfb1e75De86a38746EC57F43aBccD0A8EEc83"
-scheduled_buyback_factory: "0x740C9c51Cc91748bAD045E7eD5866355B12D6347"
+portal: "0xb6577cc36c2DF07A495fE4c0D035a1fba4C0bF04"
+converter: "0x1F436C71c19503E0e250B379477fF24c2F8a7a1d"
+trigger_service: "0x3586cdEffc8DB9CF61b39A900c301e7DeCfAb147"
+vault_portal: "0xAacb271eB9f1b2b32874f7CEc8367e54c7C4e0D5"
+scheduled_buyback_factory: "0xf0B41a6C11BbdfCD10Bf1bC395e56Fe93Ce8F3f5"
 
 # 私钥：dispatcher 需 Converter DISPATCHER_ROLE；trigger 需 TRIGGER_ROLE
 # permissionless 可用任意有 gas 的 EOA 调 batchDispatchPermissionless
