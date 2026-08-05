@@ -1,7 +1,9 @@
 # Cosm 项目结构体与枚举参考
 
 > 来源：`contracts/`（不含 `vendor/`）。字段顺序与 Solidity 一致。  
-> 注释格式：`字段 // 使用场景 · 约束/默认值 · [Flap 兼容] 说明`
+> 注释格式：`字段 // 使用场景 · 约束/默认值 · [Flap 兼容] 说明`  
+> 协议版本 **`cosm-v0.8.0`**（`Portal.version()`）· 地址见 `deployments/bsc-56.json` / [`api.md`](./api.md)  
+> **架构变更：** Portal 发币由单一 Launch 改为 **Launcher 簇**（`CosmPortalLauncher` + V5/V6/V7/TwoStep）；前端日常只调 Portal proxy 的 `newTokenV6` / `newTokenV7`；`stageNewTokenV5` / `commitNewTokenV5` **仅 saleForge**（TwoStep）。路径 B 仍走 VaultPortal。
 
 ---
 
@@ -51,7 +53,7 @@ enum TokenStatus {
     InDuel,     // 2  [Flap 占位] Cosm BSC 未用；索引器勿当作有效态
     Killed,     // 3  [Flap 占位] Cosm BSC 未用
     DEX,        // 4  已迁移；曲线 reserve 清零；DEX 买卖 / transfer tax 生效
-    Staged      // 5  [Flap 占位] Cosm BSC 未用
+    Staged      // 5  SaleForge `stageNewTokenV5` 预占（合约尚未部署）；`commitNewTokenV5` 后变 Tradable
 }
 ```
 
@@ -127,13 +129,47 @@ struct LaunchParams {
 }
 ```
 
+## struct StageNewTokenV5Params / CommitNewTokenV5Params
+
+> 场景：SaleForge two-step；`stageNewTokenV5` / `commitNewTokenV5` 均 **OnlySaleForge**；普通前端勿调  
+> `stage` → `address`（nonpayable）；`commit` → 无返回值（payable）
+
+```solidity
+struct StageNewTokenV5Params {
+    DexThreshType dexThresh;
+    bytes32 salt;
+    bool isTaxToken;
+    MigratorType migratorType;
+    address quoteToken;
+    DEXId dexId;
+}
+
+struct CommitNewTokenV5Params {
+    bytes32 salt;
+    uint16 taxRate;
+    string name;
+    string symbol;
+    string meta;
+    uint256 quoteAmt;
+    address beneficiary;
+    bytes permitData;
+    uint64 taxDuration;
+    uint64 antiFarmerDuration;
+    uint16 mktBps;
+    uint16 deflationBps;
+    uint16 dividendBps;
+    uint16 lpBps;
+    uint256 minimumShareBalance;
+}
+```
+
 ## struct TokenState
 
 > 场景：`CosmPortal.getToken(token)` 完整链上状态；含 taxSplitter/dividend/vault 等扩展字段
 
 ```solidity
 struct TokenState {
-    TokenStatus status;             // 生命周期；Invalid=0 · Tradable=1 · DEX=4
+    TokenStatus status;             // 生命周期；Invalid=0 · Tradable=1 · DEX=4 · Staged=5（SaleForge）；2/3 占位
     uint8 tokenVersion;             // 6=CosmTaxToken · 7=CosmToken
     address quoteToken;             // 发币锁定 quote；交易/税/迁移均用此 token
     uint128 reserve;                // 曲线 quote 储备(最小单位)；迁移后=0
@@ -164,7 +200,7 @@ struct TokenState {
 
 ```solidity
 struct TokenStateV8Safe {
-    uint8 status;                   // TokenStatus ordinal；0=Invalid · 1=Tradable(曲线) · 4=DEX
+    uint8 status;                   // TokenStatus ordinal；0=Invalid · 1=Tradable(曲线) · 4=DEX · 5=Staged
     uint256 reserve;                // 曲线 quote 储备；DEX 后通常 0
     uint256 circulatingSupply;      // 曲线流通量
     uint256 price;                  // 边际价 quote/1e18 token(Wad)；DEX 阶段用 dexSupplyThresh 估算
@@ -191,7 +227,7 @@ struct TokenStateV8Safe {
 
 ```solidity
 struct TokenStateV9Safe {
-    uint8 status;                   // 同 TokenStatus ordinal；0=Invalid · 1=Tradable · 4=DEX
+    uint8 status;                   // 同 TokenStatus ordinal；0=Invalid · 1=Tradable · 4=DEX · 5=Staged
     uint256 reserve;                // 曲线 quote 储备(最小单位)；DEX 后=0；展示用
     uint256 circulatingSupply;      // 曲线流通量(最小单位)；迁移进度计算分子
     uint256 price;                  // 边际价 Wad(quote/1e18 token)；DEX 用阈值 supply 估算
@@ -991,7 +1027,7 @@ struct PackedPoolState {
 
 > 场景：只读 view，供 Flap 索引器 / 前端读 TaxSplitter 当前配置；**不是发币入参**  
 > 调用：`feeConfig()` · `feeConfigV2()` · `feeConfigV3()`（V3 含四路 marketing 地址）  
-> Cosm 税币发币时：`feeRate=6000(60%)` · 迁移后 `4100(41%)` · `commissionBps=0`（除非设了 commissionReceiver）
+> Cosm 税币发币时：`feeRate=1000`（进入 TaxSplitter 的 tax 中 **10%** → `feeReceiver`）· curve / DEX **均为 1000**（`CosmPortalLaunchLib`）· `commissionBps=0`（除非设了 commissionReceiver）
 
 ```solidity
 struct PackedFeeConfig {
@@ -999,7 +1035,7 @@ struct PackedFeeConfig {
     uint16 deflationBps;    // 回购销毁份额(bps)；= InitParams.deflationBps；dispatch 买本币打 0xdead
     uint16 lpBps;           // 加 LP 份额(bps)；= InitParams.lpBps；迁移后 addLiquidity 用
     uint16 dividendBps;     // 持币分红份额(bps)；= InitParams.dividendBps；swap 后打入 CosmDividend
-    uint16 feeRate;         // TaxSplitter 内部协议抽成(bps)；从每笔进入的 quote/tax **先于四路拆分**扣给 feeReceiver；Cosm 税币发币=6000(60%) · 迁移后=4100(41%) · Standard V7 TaxSplitterLite 时为 10000-splitRatio
+    uint16 feeRate;         // TaxSplitter 内部协议抽成(bps)；从每笔进入的 quote/tax **先于四路拆分**扣给 feeReceiver；Cosm 税币 curve/DEX=1000(10% of tax) · Standard V7 TaxSplitterLite 时为 10000-splitRatio
     bool isWeth;            // quote 是否为 BNB/WBNB；true=原生或 WBNB 地址 · 索引器展示用；计算：isNative(quote)||quote==router.WETH()
 }
 
@@ -1008,7 +1044,7 @@ struct PackedFeeConfigV2 {
     uint16 deflationBps;    // 同 PackedFeeConfig.deflationBps
     uint16 lpBps;           // 同 PackedFeeConfig.lpBps
     uint16 dividendBps;     // 同 PackedFeeConfig.dividendBps
-    uint16 feeRate;         // 同 PackedFeeConfig.feeRate；Cosm 税币曲线=6000 · DEX=4100
+    uint16 feeRate;         // 同 PackedFeeConfig.feeRate；Cosm 税币 curve/DEX=1000
     bool isWeth;            // 同 PackedFeeConfig.isWeth
     uint16 commissionBps;   // 佣金 bps；从 quote 先于四路拆分扣给 commissionReceiver；公式 floor(60000/effectiveTax) · 无 receiver 时发币置 0
     address dividendToken;  // 实际分红 ERC20 地址；view 解析：mode0=WBNB(若BNB)/quote · mode1=taxToken · mode2=dividendRewardToken
@@ -1022,7 +1058,7 @@ struct PackedFeeConfigV3 {
     uint16 deflationBps;    // 销毁 bps；同 V1
     uint16 lpBps;           // 加 LP bps；同 V1
     uint16 dividendBps;     // 分红 bps；同 V1
-    uint16 feeRate;         // 内部协议抽成 bps；同 V1；Cosm 税币曲线=6000 · DEX=4100
+    uint16 feeRate;         // 内部协议抽成 bps；同 V1；Cosm 税币 curve/DEX=1000
     bool isWeth;            // 同 V1
     uint16 commissionBps;   // 同 V2
     address dividendToken;  // 同 V2；dividendToken() 解析结果
@@ -1054,7 +1090,7 @@ struct InitParams {
     uint16 deflationBps;            // 销毁 bps
     uint16 dividendBps;             // 分红 bps
     uint16 lpBps;                   // 加 LP bps；四路和须=10000
-    uint16 feeRate;                 // Splitter 内部抽成 bps；Cosm 税币发币=6000 · migrate 后=4100
+    uint16 feeRate;                 // Splitter 内部抽成 bps；Cosm 税币发币=1000 · migrate 时 setFeeRate(1000)（与 curve 相同）
     uint16 commissionBps;           // 佣金 bps；有 commissionReceiver 时按公式计算
     address commissionReceiver;     // 佣金接收；0 则 commissionBps=0
     uint8 dividendMode;             // 0=quote · 1=本币 · 2=其他
@@ -1438,6 +1474,9 @@ struct Curve {
 
 ## CosmPortalLaunchLib
 
+> 被 Portal Launcher / Migrate 等链接的库（主网 `0xC494313d879E62451B795Ab1E4D18d151760fcC8`）。  
+> 常量：`TAX_PROC_BONDING_CURVE_FEE_RATE=1000` · `TAX_PROC_DEX_FEE_RATE=1000` · `DEFAULT_V7_BONDING_CURVE_FEE_BPS=125`。
+
 ```solidity
 struct V7ParsedFees {
     uint16 deflationBps;            // 从 feeConfigs[DEFLATION] 解析的销毁 bps
@@ -1600,6 +1639,6 @@ struct SplitPositionParams {
 | dexId (TokenState) | 0 DEX0 | MDR |
 | dexId (V8Safe) | 2/3/4 | _dexKind 路由 |
 | extensionID | bytes32(0) | 无插件 |
-| TaxSplitter.feeRate | 6000(曲线) / 4100(DEX) | 发币 init / migrateToDex |
+| TaxSplitter.feeRate | 1000（curve / DEX 相同） | 发币 init · migrateToDex 调 setFeeRate(1000) |
 | mkt 四路 | sum=10000 bps | 税币 |
 | commissionBps | floor(60000/effectiveTax) | 有 commissionReceiver 时 |
