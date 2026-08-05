@@ -56,16 +56,16 @@ flowchart TB
 
 ## 3. 部署地址（BSC mainnet）
 
-> **2026-08-05 全量重部署** · `cosm-v0.7.0` · 旧批次（`0x18394A43…` / `0x59E3f460…` 等）已废弃。  
+> **2026-08-06 全量重部署** · `cosm-v0.8.0` · 旧批次（`0xb6577…` / `0xAacb…` / `0x18394A43…` 等）已废弃。  
 > 来自 `deployments/bsc-56.json`（升级后以链上为准）：
 
 | 合约 | 地址 | Keeper 用途 |
 |------|------|-------------|
-| CosmPortal (proxy) | `0xb6577cc36c2DF07A495fE4c0D035a1fba4C0bF04` | `getToken` 查 taxSplitter / dividend |
-| CosmTaxConverter (proxy) | `0x1F436C71c19503E0e250B379477fF24c2F8a7a1d` | 批量 dispatch / 分红 |
-| CosmTriggerService (proxy) | `0x3586cdEffc8DB9CF61b39A900c301e7DeCfAb147` | 定时回购金库 callback |
-| CosmVaultPortal (proxy) | `0xAacb271eB9f1b2b32874f7CEc8367e54c7C4e0D5` | 查金库 `tryGetVault` |
-| CosmScheduledBuybackVaultFactory | `0xf0B41a6C11BbdfCD10Bf1bC395e56Fe93Ce8F3f5` | 识别 scheduled-buyback 金库 requester |
+| CosmPortal (proxy) | `0x889fD6b69F2994B0459Ca40c7a61Ac7331484A07` | `getToken` 查 taxSplitter / dividend |
+| CosmTaxConverter (proxy) | `0xf03f44821Bd548B148D2482C8dB55Adc85b0Bce5` | 批量 dispatch / 分红 |
+| CosmTriggerService (proxy) | `0x2eF80850B2409Ec762B48B1812E8B657DdaE6855` | 定时回购金库 callback |
+| CosmVaultPortal (proxy) | `0xAfE3CCdBB0039DCeD888aB780BB3d8db522135a8` | 查金库 `tryGetVault` |
+| CosmScheduledBuybackVaultFactory | `0xe4145BB2c363e42a23d1f10eAfc0d241B161f335` | 识别 scheduled-buyback 金库 requester |
 
 `TriggerService.getFee()` 默认 **0.0002 BNB**（以链上为准）；`feeReceiver` 读 `Portal.feeReceiver()`（与 Trigger 初始化一致）。
 
@@ -144,6 +144,7 @@ Lite 识别：`feeConfig().marketBps + deflationBps + dividendBps + lpBps` 四�
 |---------|--------|----------|------|------|
 | `dispatch` | 高 | `TaxSplitter.dispatch()` 或 Converter 批量 | 无 / `DISPATCHER_ROLE` | 税币四路出账 |
 | `dispatch_mev` | 高 | `Converter.batchDispatch` | `DISPATCHER_ROLE` | dividendMode=2 且需 MEV 保护 |
+| `trigger_split` | 中 | `Converter.triggerSplit(taxTokens)` | 无（MEV 币须 role） | 内部 `triggerSingleSplit`；**EOA 勿直调** `triggerSingleSplit` |
 | `distribute_dividend` | 中 | `Converter.batchDistributeDividend` | 无 | 批量结算持币者 pending |
 | `trigger_buyback` | 中 | `TriggerService.trigger` / `triggerMultiple` | `TRIGGER_ROLE` | 定时回购金库 |
 | `case3_convert` | 低 | `TaxSplitter.dispatch()` **且 msg.sender=converter** | converter 私钥 | mode=2 分红 swap |
@@ -678,11 +679,11 @@ func (t *TokenJob) RefreshPending(ctx context.Context, split *splitter.TaxSplitt
 ```yaml
 chain_id: 56
 rpc_url: "https://bsc-dataseed.binance.org"
-portal: "0xb6577cc36c2DF07A495fE4c0D035a1fba4C0bF04"
-converter: "0x1F436C71c19503E0e250B379477fF24c2F8a7a1d"
-trigger_service: "0x3586cdEffc8DB9CF61b39A900c301e7DeCfAb147"
-vault_portal: "0xAacb271eB9f1b2b32874f7CEc8367e54c7C4e0D5"
-scheduled_buyback_factory: "0xf0B41a6C11BbdfCD10Bf1bC395e56Fe93Ce8F3f5"
+portal: "0x889fD6b69F2994B0459Ca40c7a61Ac7331484A07"
+converter: "0xf03f44821Bd548B148D2482C8dB55Adc85b0Bce5"
+trigger_service: "0x2eF80850B2409Ec762B48B1812E8B657DdaE6855"
+vault_portal: "0xAfE3CCdBB0039DCeD888aB780BB3d8db522135a8"
+scheduled_buyback_factory: "0xe4145BB2c363e42a23d1f10eAfc0d241B161f335"
 
 # 私钥：dispatcher 需 Converter DISPATCHER_ROLE；trigger 需 TRIGGER_ROLE
 # permissionless 可用任意有 gas 的 EOA 调 batchDispatchPermissionless
