@@ -56,7 +56,7 @@ flowchart TB
 
 ## 3. 部署地址（BSC mainnet）
 
-> **2026-08-06 晚全量重部署** · `cosm-v0.8.0` · 旧批次（`0x889fD6…` / `0xAfE3…` / `0x2eF808…` / `0xe4145…` 等）已废弃。  
+> **2026-08-07 全量重部署** · `cosm-v0.8.0` · 旧批次（`0xc623…` / `0xde41…` / `0x806d…` / `0x4608…` 等）已废弃。  
 > 来自 `deployments/bsc-56.json`：  
 > **Trigger `requestId` 从 1 起**；`pendingRequestId==0` 仍表示金库无 pending。  
 > ScheduledBuyback **工厂**为 Transparent proxy；金库实例为 BeaconProxy（`trigger` / `getStatus` 等方法名不变）。  
@@ -64,11 +64,11 @@ flowchart TB
 
 | 合约 | 地址 | Keeper 用途 |
 |------|------|-------------|
-| CosmPortal (proxy) | `0xc6238dc53eDBCc67bF0566800c1b0078EeD420eD` | `getToken` 查 taxSplitter / dividend |
-| CosmTaxConverter (proxy) | `0xb7E3747111EcD67C98BAf4D9C03feEBD541C5356` | 批量 dispatch / 分红 |
-| CosmTriggerService (proxy) | `0x806d3b8121185D0b57b3861377dBf22934499C50` | 定时回购金库 callback |
-| CosmVaultPortal (proxy) | `0xde418D4b81A8865eE7a827C6823756CB7640513b` | 查金库 `tryGetVault` |
-| CosmScheduledBuybackVaultFactory (proxy) | `0x4608e6c2293102BD3750D4BB152068E2815f3f02` | 识别 scheduled-buyback 金库 requester |
+| CosmPortal (proxy) | `0x19a16516B187027EF778aEea4866FcFF65d5c03C` | `getToken` 查 taxSplitter / dividend |
+| CosmTaxConverter (proxy) | `0xF390c921D5163D8A1eb07231518e1b8F1dB5b454` | 批量 dispatch / 分红 |
+| CosmTriggerService (proxy) | `0x47748430d34b3575a74717a63eDB8798757D6830` | 定时回购金库 callback |
+| CosmVaultPortal (proxy) | `0xB79a2cB9c0000fDb8ABb892e65F7d49FC04EA742` | 查金库 `tryGetVault` |
+| CosmScheduledBuybackVaultFactory (proxy) | `0x163292C2D316f6b6b6c65F7DfE152ec2D6983e97` | 识别 scheduled-buyback 金库 requester |
 
 `TriggerService.getFee()` 默认 **0.0002 BNB**（以链上为准）；`feeReceiver` 读 `Portal.feeReceiver()`（与 Trigger 初始化一致）。
 
@@ -682,11 +682,11 @@ func (t *TokenJob) RefreshPending(ctx context.Context, split *splitter.TaxSplitt
 ```yaml
 chain_id: 56
 rpc_url: "https://bsc-dataseed.binance.org"
-portal: "0xc6238dc53eDBCc67bF0566800c1b0078EeD420eD"
-converter: "0xb7E3747111EcD67C98BAf4D9C03feEBD541C5356"
-trigger_service: "0x806d3b8121185D0b57b3861377dBf22934499C50"
-vault_portal: "0xde418D4b81A8865eE7a827C6823756CB7640513b"
-scheduled_buyback_factory: "0x4608e6c2293102BD3750D4BB152068E2815f3f02"
+portal: "0x19a16516B187027EF778aEea4866FcFF65d5c03C"
+converter: "0xF390c921D5163D8A1eb07231518e1b8F1dB5b454"
+trigger_service: "0x47748430d34b3575a74717a63eDB8798757D6830"
+vault_portal: "0xB79a2cB9c0000fDb8ABb892e65F7d49FC04EA742"
+scheduled_buyback_factory: "0x163292C2D316f6b6b6c65F7DfE152ec2D6983e97"
 
 # 私钥：dispatcher 需 Converter DISPATCHER_ROLE；trigger 需 TRIGGER_ROLE
 # permissionless 可用任意有 gas 的 EOA 调 batchDispatchPermissionless
