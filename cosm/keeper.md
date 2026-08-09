@@ -58,20 +58,48 @@ flowchart TB
 
 > **2026-08-09 全量重部署** · `cosm-v0.8.0` · 含税侧 Flap 对齐（直连 quote↔token / Portal 回购 / dispatch 不花 `lpQuoteBalance`）。  
 > 旧批次（`0x19a165…` Portal / `0xF390c9…` Converter / `0x477484…` Trigger / `0x163292…` Scheduled 工厂等）已废弃。  
-> 来自 `deployments/bsc-56.json`：  
+> **地址真源**：`deployments/bsc-56.json`（proxy / 核心 impl / 6 个 factory proxy）。  
 > **Trigger `requestId` 从 1 起**；`pendingRequestId==0` 仍表示金库无 pending。  
-> ScheduledBuyback **工厂**为 Transparent proxy；金库实例为 BeaconProxy（`trigger` / `getStatus` 等方法名不变）。  
-> 工厂 `factorySpecVersion()` = `"v2.3"`（校验用）。
+> Vault **工厂**为 Transparent proxy；金库实例为 BeaconProxy（`trigger` / `getStatus` 等方法名不变）。  
+> 工厂 `factorySpecVersion()` = `"v2.3"`（校验用）。  
+> ABI 可开源仓 / BSCScan verified 自行拉取；改 pin 时除 proxy 外还需核对下表 **implementation / Beacon**。
 
-| 合约 | 地址 | Keeper 用途 |
-|------|------|-------------|
-| CosmPortal (proxy) | `0xF2846c87e039A4b9147fb8BED3311bdCC4d540a4` | `getToken` 查 taxSplitter / dividend |
-| CosmTaxConverter (proxy) | `0x19bfc979cC70676C7028085B540c02f2CFb5f061` | 批量 dispatch / 分红 |
-| CosmTriggerService (proxy) | `0x8F7dBa5a2FaC6876f1A6EF2B4C7b640FA370a843` | 定时回购金库 callback |
-| CosmVaultPortal (proxy) | `0x3F7730f9A423f415bCCA6319F17c623123D0f54B` | 查金库 `tryGetVault` |
-| CosmScheduledBuybackVaultFactory (proxy) | `0xb4aecB8f71e971D2823F405b08cF71b00ECF1C3F` | 识别 scheduled-buyback 金库 requester |
+### 3.1 核心入口（proxy + implementation）
+
+| 合约 | Proxy | Implementation | Keeper 用途 |
+|------|-------|----------------|-------------|
+| CosmPortal | `0xF2846c87e039A4b9147fb8BED3311bdCC4d540a4` | `0xA3e208B2f71D2FBE4E26ebAf35cFc272123508ec` | `getToken` 查 taxSplitter / dividend |
+| CosmVaultPortal | `0x3F7730f9A423f415bCCA6319F17c623123D0f54B` | `0x16547EB890E68098efACB16378Ccc37FE5773c03` | 查金库 `tryGetVault` |
+| CosmTriggerService | `0x8F7dBa5a2FaC6876f1A6EF2B4C7b640FA370a843` | `0x8b7854A752Fc59EB5d2d7777B8D6c338Ccfe92Ce` | 定时回购金库 callback |
+| CosmTaxConverter | `0x19bfc979cC70676C7028085B540c02f2CFb5f061` | `0x8a84Eb93Bf83a9Ca5BA2D00A45eECC287dEE3394` | 批量 dispatch / 分红 |
+
+JSON 字段：`portalProxy` / `portalImpl` · `vaultProxy` / `vaultImpl` · `triggerProxy` / `triggerImpl` · `converterProxy` / `converterImpl`。
+
+### 3.2 官方 Vault factories（6 套 pin）
+
+识别金库玩法、校验 factory / Beacon / vault impl 时用。  
+`factoryProxy` 在 `bsc-56.json`；`factoryImpl` / `vaultBeacon` / `vaultImplementation` 由链上读取（EIP-1967 impl slot · `vaultBeacon()` · `vaultImplementation()`），部署脚本当前未写入 JSON。
+
+| `vaultType` | factoryProxy | factoryImpl | vaultBeacon | vaultImplementation |
+|-------------|--------------|-------------|-------------|---------------------|
+| `split` | `0x7D41fc6Af8135BAf07283bB5620e12a8D18BfFD4` | `0x9FeBf5b879360bfAe9Cad89Dd33A9838CbdA2726` | `0x8Fa5E1653eD4A9D4bDb4Aa07fbe7142DB85ef4f2` | `0x9B9160E4DD5C937D6d7A3CAF38994Ae317fEaCe4` |
+| `scheduled-buyback` | `0xb4aecB8f71e971D2823F405b08cF71b00ECF1C3F` | `0xB922E259DdB44B8E722c9B96fAA61B862b44E3D8` | `0xfA2f089acbD023c37764b3176d79a675336f7546` | `0x60184215a8f9E676BbccaeD61171163ECBd10665` |
+| `burn-dividend` | `0x8CB8f70E354FAA389Cd68f542B3a5E370F68Fa2B` | `0x29c492753EF4D085A80DDFeA3cDa3d4dbaD3cc0D` | `0x1802F9D716B5207c89cA7D618A69568952FaA535` | `0x1D44866F0F4007FBF62A8192B4EB7323265c5836` |
+| `lp-staking-dividend` | `0xF317669B8Fb1D6ec6849e93822F4a8C7b051D5bf` | `0xcbeEA74EbcB867A90a16b8299058816BdFF5201d` | `0x75F041A7b78C35Acb0203828787ED267cFd79390` | `0x4f499e570080B5791D1129536A3a0118E5Cda0d3` |
+| `token-staking-dividend` | `0xb3c3aDdf35D92250a4c4f4fb6153Bc85Ab94fcf2` | `0x1881B5F344Ce6E9089E8e02807a532EFA48048B7` | `0xA2D745BDD93f34fcb6622E206F0D2FC1284320Eb` | `0xEa3c7048b1DE303F708E31F736CE5DDd06617F62` |
+| `rank-burn-dividend` | `0x25bf46f6Beab3fC546EC0a1Bcfbf32367e4EC3f4` | `0x33BBF435f7f7fE54d8A5dbF7202A958cA6Ac5Cd0` | `0xE2Cf0BF12158DB8382cEd21ED740fC6a79CF245f` | `0x13B401f4d43721Bf9C34D5649A991a63558af510` |
+
+JSON 字段对照：`splitFactory` · `scheduledFactory` · `burnDivFactory` · `lpStakeFactory` · `tokenStakeFactory` · `rankBurnFactory`。
 
 `TriggerService.getFee()` 默认 **0.0002 BNB**（以链上为准）；`feeReceiver` 读 `Portal.feeReceiver()`（与 Trigger 初始化一致）。
+
+### 3.3 交给后端改 pin 时
+
+| 交付物 | 用途 |
+|--------|------|
+| 本文 §3 | 行为入口 + 全套 pin（含 Converter impl 与 6 factory 三元组） |
+| `deployments/bsc-56.json` | 机器可读真源（proxy / 核心 impl / factory proxy） |
+| ABI | 开源 / 链上 verified 自行 copy，不必随文档打包 |
 
 ---
 
@@ -687,7 +715,20 @@ portal: "0xF2846c87e039A4b9147fb8BED3311bdCC4d540a4"
 converter: "0x19bfc979cC70676C7028085B540c02f2CFb5f061"
 trigger_service: "0x8F7dBa5a2FaC6876f1A6EF2B4C7b640FA370a843"
 vault_portal: "0x3F7730f9A423f415bCCA6319F17c623123D0f54B"
+
+# 官方 vault factory proxy（完整 pin 见 §3.2）
+split_factory: "0x7D41fc6Af8135BAf07283bB5620e12a8D18BfFD4"
 scheduled_buyback_factory: "0xb4aecB8f71e971D2823F405b08cF71b00ECF1C3F"
+burn_dividend_factory: "0x8CB8f70E354FAA389Cd68f542B3a5E370F68Fa2B"
+lp_staking_dividend_factory: "0xF317669B8Fb1D6ec6849e93822F4a8C7b051D5bf"
+token_staking_dividend_factory: "0xb3c3aDdf35D92250a4c4f4fb6153Bc85Ab94fcf2"
+rank_burn_dividend_factory: "0x25bf46f6Beab3fC546EC0a1Bcfbf32367e4EC3f4"
+
+# 强校验 pin（与 §3.1 / §3.2 一致；也可用 deployments/bsc-56.json + 链上读 Beacon）
+portal_impl: "0xA3e208B2f71D2FBE4E26ebAf35cFc272123508ec"
+vault_portal_impl: "0x16547EB890E68098efACB16378Ccc37FE5773c03"
+trigger_impl: "0x8b7854A752Fc59EB5d2d7777B8D6c338Ccfe92Ce"
+converter_impl: "0x8a84Eb93Bf83a9Ca5BA2D00A45eECC287dEE3394"
 
 # 私钥：dispatcher 需 Converter DISPATCHER_ROLE；trigger 需 TRIGGER_ROLE
 # permissionless 可用任意有 gas 的 EOA 调 batchDispatchPermissionless
@@ -740,6 +781,7 @@ start_block: 0
 
 ## 15. 快速检查清单
 
+- [ ] 地址 / pin 已按 §3 与 `deployments/bsc-56.json` 更新（含 `converterImpl` 与 6 factory 的 Impl/Beacon/VaultImpl）
 - [ ] Keeper 钱包已授予 `DISPATCHER_ROLE`（Converter）· `TRIGGER_ROLE`（TriggerService）
 - [ ] 注册表监听 `TokenCreated` + 历史回填
 - [ ] 监听 `BondingCurveTax` / `ProcessTaxTokens` 触发 debounced dispatch
