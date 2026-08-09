@@ -11,7 +11,7 @@
 | 阶段 | 触发方 | 函数 | 效果 |
 |------|--------|------|------|
 | 入账 | Portal / TaxToken 自动 | `depositQuoteAndSplit`（曲线）· `processTaxTokens`（DEX） | 记入内部桶，**不转账** |
-| 出账 | **Keeper 必须调** | `dispatch()` | 转给 feeReceiver、金库、分红、销毁、加 LP |
+| 出账 | **Keeper 必须调** | `dispatch()` | 转给 feeReceiver、金库、分红、销毁（LP 在 DEX `processTaxTokens` 配对，不在 dispatch） |
 
 `dispatch()` **permissionless**（任何人可调），但 **不会自动执行**。
 
@@ -43,7 +43,7 @@ flowchart TB
 
     subgraph exec [出账 - Keeper 调用]
         Converter[CosmTaxConverter]
-        TS -->|dispatch| Payout[feeReceiver / 金库 / 分红 / LP / 销毁]
+        TS -->|dispatch| Payout[feeReceiver / 金库 / 分红 / 销毁]
         Scheduler -->|batchDispatch| Converter
         Converter --> TS
         Scheduler -->|batchDistributeDividend| Div[CosmDividend]
@@ -56,7 +56,8 @@ flowchart TB
 
 ## 3. 部署地址（BSC mainnet）
 
-> **2026-08-07 全量重部署** · `cosm-v0.8.0` · 旧批次（`0xc623…` / `0xde41…` / `0x806d…` / `0x4608…` 等）已废弃。  
+> **2026-08-09 全量重部署** · `cosm-v0.8.0` · 含税侧 Flap 对齐（直连 quote↔token / Portal 回购 / dispatch 不花 `lpQuoteBalance`）。  
+> 旧批次（`0x19a165…` Portal / `0xF390c9…` Converter / `0x477484…` Trigger / `0x163292…` Scheduled 工厂等）已废弃。  
 > 来自 `deployments/bsc-56.json`：  
 > **Trigger `requestId` 从 1 起**；`pendingRequestId==0` 仍表示金库无 pending。  
 > ScheduledBuyback **工厂**为 Transparent proxy；金库实例为 BeaconProxy（`trigger` / `getStatus` 等方法名不变）。  
@@ -64,11 +65,11 @@ flowchart TB
 
 | 合约 | 地址 | Keeper 用途 |
 |------|------|-------------|
-| CosmPortal (proxy) | `0x19a16516B187027EF778aEea4866FcFF65d5c03C` | `getToken` 查 taxSplitter / dividend |
-| CosmTaxConverter (proxy) | `0xF390c921D5163D8A1eb07231518e1b8F1dB5b454` | 批量 dispatch / 分红 |
-| CosmTriggerService (proxy) | `0x47748430d34b3575a74717a63eDB8798757D6830` | 定时回购金库 callback |
-| CosmVaultPortal (proxy) | `0xB79a2cB9c0000fDb8ABb892e65F7d49FC04EA742` | 查金库 `tryGetVault` |
-| CosmScheduledBuybackVaultFactory (proxy) | `0x163292C2D316f6b6b6c65F7DfE152ec2D6983e97` | 识别 scheduled-buyback 金库 requester |
+| CosmPortal (proxy) | `0xF2846c87e039A4b9147fb8BED3311bdCC4d540a4` | `getToken` 查 taxSplitter / dividend |
+| CosmTaxConverter (proxy) | `0x19bfc979cC70676C7028085B540c02f2CFb5f061` | 批量 dispatch / 分红 |
+| CosmTriggerService (proxy) | `0x8F7dBa5a2FaC6876f1A6EF2B4C7b640FA370a843` | 定时回购金库 callback |
+| CosmVaultPortal (proxy) | `0x3F7730f9A423f415bCCA6319F17c623123D0f54B` | 查金库 `tryGetVault` |
+| CosmScheduledBuybackVaultFactory (proxy) | `0xb4aecB8f71e971D2823F405b08cF71b00ECF1C3F` | 识别 scheduled-buyback 金库 requester |
 
 `TriggerService.getFee()` 默认 **0.0002 BNB**（以链上为准）；`feeReceiver` 读 `Portal.feeReceiver()`（与 Trigger 初始化一致）。
 
@@ -164,12 +165,12 @@ Lite 识别：`feeConfig().marketBps + deflationBps + dividendBps + lpBps` 四�
 ```solidity
 feeQuoteBalance
 marketQuoteBalance
-lpQuoteBalance
 commissionQuoteBalance
 preBondBurnFunds              // 待销毁回购
 pendingDividendQuoteTokenBalance
 dividendTokenBalance
 deferredTaxTokenBalance       // 待 process 的 tax token
+// lpQuoteBalance — 勿单独当作「该 dispatch」：dispatch 不清此桶（Flap：DEX processTaxTokens 配对花费）
 ```
 
 辅助 view：
@@ -653,10 +654,10 @@ func onTokenCreated(ctx context.Context, portal *portal.Portal, token common.Add
 
 ```go
 func (t *TokenJob) RefreshPending(ctx context.Context, split *splitter.TaxSplitter) (*big.Int, error) {
+    // 不含 lpQuoteBalance：dispatch 不清该桶（Flap 对齐，DEX processTaxTokens 才花）
     buckets := []*big.Int{
         must(split.FeeQuoteBalance(nil)),
         must(split.MarketQuoteBalance(nil)),
-        must(split.LpQuoteBalance(nil)),
         must(split.CommissionQuoteBalance(nil)),
         must(split.PreBondBurnFunds(nil)),
         must(split.PendingDividendQuoteTokenBalance(nil)),
@@ -682,11 +683,11 @@ func (t *TokenJob) RefreshPending(ctx context.Context, split *splitter.TaxSplitt
 ```yaml
 chain_id: 56
 rpc_url: "https://bsc-dataseed.binance.org"
-portal: "0x19a16516B187027EF778aEea4866FcFF65d5c03C"
-converter: "0xF390c921D5163D8A1eb07231518e1b8F1dB5b454"
-trigger_service: "0x47748430d34b3575a74717a63eDB8798757D6830"
-vault_portal: "0xB79a2cB9c0000fDb8ABb892e65F7d49FC04EA742"
-scheduled_buyback_factory: "0x163292C2D316f6b6b6c65F7DfE152ec2D6983e97"
+portal: "0xF2846c87e039A4b9147fb8BED3311bdCC4d540a4"
+converter: "0x19bfc979cC70676C7028085B540c02f2CFb5f061"
+trigger_service: "0x8F7dBa5a2FaC6876f1A6EF2B4C7b640FA370a843"
+vault_portal: "0x3F7730f9A423f415bCCA6319F17c623123D0f54B"
+scheduled_buyback_factory: "0xb4aecB8f71e971D2823F405b08cF71b00ECF1C3F"
 
 # 私钥：dispatcher 需 Converter DISPATCHER_ROLE；trigger 需 TRIGGER_ROLE
 # permissionless 可用任意有 gas 的 EOA 调 batchDispatchPermissionless
@@ -835,12 +836,12 @@ tokenVersion == 6  &&  taxSplitter != 0  &&  不是 TaxSplitterLite
 
 `token` 负责 **定位**；干活对象是 **`st.taxSplitter`**。
 
-读 pending 桶（任一 > 0 应考虑 dispatch）：
+读 pending 桶（任一 > 0 应考虑 dispatch；**不含** `lpQuoteBalance`）：
 
 ```text
 feeQuoteBalance
 marketQuoteBalance
-lpQuoteBalance
+commissionQuoteBalance
 preBondBurnFunds
 pendingDividendQuoteTokenBalance
 dividendTokenBalance
