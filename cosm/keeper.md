@@ -56,21 +56,20 @@ flowchart TB
 
 ## 3. 部署地址（BSC mainnet）
 
-> **2026-08-09 全量重部署** · `cosm-v0.8.0` · **支持 COSM quote**（Path A；Path B 金库仍 BNB-only）· 税侧 Flap 对齐。  
-> 旧批次（`0xF2846c…` Portal / `0x19bfc9…` Converter / `0x8F7dBa…` Trigger / 旧六工厂等）已废弃。  
-> **地址真源**：`deployments/bsc-56.json`（proxy / 核心 impl / 6 个 factory proxy）· 与 README 部署清单一致。  
+> **当前快照** · `cosm-v0.8.0` · **地址真源**：`deployments/bsc-56.json` / README。  
+> Transparent **代理地址稳定**；impl 经多次升级（含 `UpgradeCosmOnlyEvents`）后以下表为准。  
+> **事件 / ABI：** 新实现**只发 Cosm 名**（不再同时发 `Flap*`）；对照见 [§3.4](#34-事件--方法对照cosm-only) 与 [`api.md` §ABI 对照](./api.md#abi--事件对照cosm-only)。  
 > **Trigger `requestId` 从 1 起**；`pendingRequestId==0` 仍表示金库无 pending。  
 > Vault **工厂**为 Transparent proxy；金库实例为 BeaconProxy（`trigger` / `getStatus` 等方法名不变）。  
-> 工厂 `factorySpecVersion()` = `"v2.3"`（校验用）。  
-> ABI 可开源仓 / BSCScan verified 自行拉取；改 pin 时除 proxy 外还需核对下表 **implementation / Beacon**。
+> 工厂 `factorySpecVersion()` = `"v2.3"`（校验用）。
 
 ### 3.1 核心入口（proxy + implementation）
 
 | 合约 | Proxy | Implementation | Keeper 用途 |
 |------|-------|----------------|-------------|
-| CosmPortal | `0xb4B057dEFda3822786F998FC54Aa93440caEDb6c` | `0x33D034AAa42CB587B41b8DAfE958A2D601D1392f` | `getToken` 查 taxSplitter / dividend |
-| CosmVaultPortal | `0xE3BDE2e728F5a9a5FD5bdda87B067a55bf593183` | `0x17Edc23B129a3570c214B2FaAbB2488C24C86A24` | 查金库 `tryGetVault` |
-| CosmTriggerService | `0x0B8dD41a583f456DD733b2a35CA28D61F6204e08` | `0x5bec8FaDE3005aa28E841f66c6d0cA7fDbce5522` | 定时回购金库 callback |
+| CosmPortal | `0xb4B057dEFda3822786F998FC54Aa93440caEDb6c` | `0x6182719cb38B3C45Cb9a5f3b7b5e9d304d8313D8` | `getToken` 查 taxSplitter / dividend |
+| CosmVaultPortal | `0xE3BDE2e728F5a9a5FD5bdda87B067a55bf593183` | `0x9304020651A5C122456F17B9bfe28CE00F99DDeE` | 查金库 `tryGetVault` |
+| CosmTriggerService | `0x0B8dD41a583f456DD733b2a35CA28D61F6204e08` | `0xbDbDB658f5D5eFb15d079568e58EedE70F34FdCA` | 定时回购金库 callback |
 | CosmTaxConverter | `0x3725B42BfDa1Ef33a7eEb8c0465675Ee72aa0001` | `0xE7c11E0Bf080a12e19CE528b85715793e55bCaC9` | 批量 dispatch / 分红 |
 
 JSON 字段：`portalProxy` / `portalImpl` · `vaultProxy` / `vaultImpl` · `triggerProxy` / `triggerImpl` · `converterProxy` / `converterImpl`。
@@ -100,6 +99,27 @@ JSON 字段对照：`splitFactory` · `scheduledFactory` · `burnDivFactory` · 
 | 本文 §3 | 行为入口 + 全套 pin（含 Converter impl 与 6 factory 三元组） |
 | `deployments/bsc-56.json` | 机器可读真源（proxy / 核心 impl / factory proxy） |
 | ABI | 开源 / 链上 verified 自行 copy，不必随文档打包 |
+
+### 3.4 事件 / 方法对照（Cosm-only）
+
+升级后 **新 Portal / Trigger / Vault / 新 clone 模板** 只发下表「当前」事件；`dispatch` / `batchDispatch` / `trigger` 等**方法名未变**。
+
+| 场景 | 勿再只订 `Flap*`（新块无效） | 当前应订阅 |
+|------|------------------------------|------------|
+| 税入账（曲线） | `FlapTaxProcessorBondingCurveTax` | `BondingCurveTax` |
+| 税入账（DEX） | `FlapTaxProcessorProcessTaxTokens` | `ProcessTaxTokens` |
+| 税打出 | `FlapTaxProcessorDispatchExecuted` | `DispatchExecuted` |
+| Infinity LP 信号 | `FlapDispatchReady` | `CosmDispatchReady` |
+| 发币 | （不变） | `TokenCreated` |
+| 进度 / 迁移 | `FlapTokenProgressChanged` | `TokenProgressChanged` |
+| 路径 B 金库创建 | `FlapTaxVaultTokenCreated` | `CosmTaxVaultTokenCreated` |
+| Trigger 预约 / 执行 | `FlapTriggerRequested` / `FlapTriggerExecuted` | `CosmTriggerRequested` / `CosmTriggerExecuted` |
+| 分红入账 / 结算 | `FlapDividendDeposited` / `FlapDividendDistributed` | `CosmDividendDeposited` / `CosmDividendDistributed` |
+| 分红份额 | `FlapDividendShareChanged` | `CosmDividendShareChanged` |
+| 代币转账索引 | `TransferFlapToken` | `TransferCosmToken`（仅新币模板） |
+
+方法：`setFlapFeeProfile` → `setFeeProfile`；`flapBlackHole` → `cosmBlackHole`（keeper 一般不调）。  
+老币 EIP-1167 clone 仍可能发出历史 `Flap*` 事件——注册表可双订，**新币只订 Cosm / 短名**。
 
 ---
 
@@ -275,13 +295,9 @@ event DispatchExecuted(
     address indexed taxToken, uint256 feeAmount, uint256 marketAmount, uint256 dividendAmount
 );
 // topic0: 0x00f5666a9426f536cc33e459e6d9f34c20cc1079e627d60481c3bb9ea94c0049
-
-// Flap 别名（同参数）
-event FlapTaxProcessorDispatchExecuted(...);
-// topic0: 0x172485312163eefa9f05b438339dc7c596fbb24af0cb3e35b9130c68453a0d88
 ```
 
-子事件（审计用）：`FeePaid` · `WalletDistributed` · `BurnExecuted` · `FlapTaxProcessorDividendConverted`
+子事件（审计用）：`FeePaid` · `WalletDistributed` · `BurnExecuted` · `DividendConverted`
 
 ---
 
@@ -291,12 +307,12 @@ event FlapTaxProcessorDispatchExecuted(...);
 
 | 事件 | topic0 | indexed | 说明 |
 |------|--------|---------|------|
-| `BondingCurveTax(address,uint256)` | `0x605e8297...` | taxToken | 曲线 tax 入账 |
-| `FlapTaxProcessorBondingCurveTax(address,uint256)` | `0xe28939e2...` | taxToken | 同上 Flap 名 |
+| `BondingCurveTax(address,uint256)` | `0x605e8297...` | taxToken | 曲线 tax 入账（新实现仅此名） |
 | `ProcessTaxTokens(address,uint256)` | `0x2b93f18f...` | taxToken | DEX tax 已 process |
-| `FlapTaxProcessorProcessTaxTokens(address,uint256)` | `0x378102bd...` | taxToken | 同上 |
 | `TokensParked(address,uint256)` | — | taxToken | swap 重入暂存，需后续 dispatch |
 | `TaxLiquidationError` (TaxToken) | — | — | 清算失败，tax 已转 Splitter，**应 dispatch** |
+
+> 历史块 / 老 clone 可能仍有 `FlapTaxProcessorBondingCurveTax` 等；新币只订上表。
 
 ### 7.2 注册表 / 生命周期
 
@@ -310,8 +326,7 @@ event FlapTaxProcessorDispatchExecuted(...);
 
 | 事件 | topic0 | 说明 |
 |------|--------|------|
-| `CosmDispatchReady(...)` | `0x50673b85...` | 待收 LP 费 ≥ threshold |
-| `FlapDispatchReady(...)` | `0xcfe55ad5...` | 同上 |
+| `CosmDispatchReady(...)` | `0x50673b85...` | 待收 LP 费 ≥ threshold（仅 Cosm 名） |
 
 Keeper 可先调 `checkAndNotifyDispatch()`（selector `0x52ddd8a5`），再 `dispatch()`。
 
@@ -326,15 +341,15 @@ Keeper 可先调 `checkAndNotifyDispatch()`（selector `0x52ddd8a5`），再 `di
 
 | 事件 | 说明 |
 |------|------|
-| `FlapDividendDeposited(taxToken, amount, ...)` | dispatch 打入分红 |
-| `FlapDividendDistributed(taxToken, user, amount)` | 用户已结算 |
+| `CosmDividendDeposited(taxToken, amount, ...)` | dispatch 打入分红 |
+| `CosmDividendDistributed(taxToken, user, amount)` | 用户已结算 |
+| `CosmDividendShareChanged(...)` | 持仓份额变更（原 `FlapDividendShareChanged`） |
 
 ### 7.6 触发 scheduled-buyback（TriggerService）
 
 | 事件 | indexed | 说明 |
 |------|---------|------|
 | `CosmTriggerRequested(requestId, requester, executeAfter, feePaid)` | requestId · requester | 金库 `requestTrigger` 后；**requester = 金库地址** |
-| `FlapTriggerRequested(...)` | 同上 | Flap 别名，参数相同 |
 | `CosmTriggerExecuted(requestId, success, data)` | requestId | keeper `trigger` 回调结果 |
 | `CosmTriggerSkipped(requestId, reason)` | requestId | 过早 / 非 PENDING 等，本轮未回调 |
 | `TriggerScheduled(requestId, executeAfter)` | requestId | 金库侧：已写入 `pendingRequestId` |
@@ -358,7 +373,7 @@ CosmTaxConverter.batchDistributeDividend(
 **用户列表来源**
 
 - 监听 `Transfer`（tax token）维护 holder 集合（排除 pool / dead / splitter）
-- 或监听 `FlapDividendShareChanged`
+- 或监听 `CosmDividendShareChanged`
 - 轮询：`withdrawableDividendOf(user) > 0` 的用户分批传入（每批建议 ≤ 50–100）
 
 单用户也可链上自行 `withdrawDividends()`，keeper 只是 **批量代结算** UX 优化。
@@ -725,9 +740,9 @@ token_staking_dividend_factory: "0xf14a4Aa3D702af1416dF91e8372E7f9101F7c3a1"
 rank_burn_dividend_factory: "0x9abC0D6516d4a023280EADaB82397b99521AB98f"
 
 # 强校验 pin（与 §3.1 / §3.2 一致；也可用 deployments/bsc-56.json + 链上读 Beacon）
-portal_impl: "0x33D034AAa42CB587B41b8DAfE958A2D601D1392f"
-vault_portal_impl: "0x17Edc23B129a3570c214B2FaAbB2488C24C86A24"
-trigger_impl: "0x5bec8FaDE3005aa28E841f66c6d0cA7fDbce5522"
+portal_impl: "0x6182719cb38B3C45Cb9a5f3b7b5e9d304d8313D8"
+vault_portal_impl: "0x9304020651A5C122456F17B9bfe28CE00F99DDeE"
+trigger_impl: "0xbDbDB658f5D5eFb15d079568e58EedE70F34FdCA"
 converter_impl: "0xE7c11E0Bf080a12e19CE528b85715793e55bCaC9"
 
 # 私钥：dispatcher 需 Converter DISPATCHER_ROLE；trigger 需 TRIGGER_ROLE
@@ -775,7 +790,7 @@ start_block: 0
 | 发币 `feeRate` | **1000**（10% of tax） |
 | 迁移后 `feeRate` | **1000**（与 curve 相同；migrate 时 Portal 调 `setFeeRate`） |
 | 批量入口 | `CosmTaxConverter`（Flap 同款 ABI） |
-| 事件 | 同时发 `Flap*` 与 `Cosm*` 别名，订阅其一即可 |
+| 事件 | **有意分叉**：行为对齐 Flap，但**只发 Cosm 名 / 短名**（不再双发 `Flap*`）；见 §3.4 |
 
 ---
 
@@ -784,7 +799,8 @@ start_block: 0
 - [ ] 地址 / pin 已按 §3 与 `deployments/bsc-56.json` 更新（含 `converterImpl` 与 6 factory 的 Impl/Beacon/VaultImpl）
 - [ ] Keeper 钱包已授予 `DISPATCHER_ROLE`（Converter）· `TRIGGER_ROLE`（TriggerService）
 - [ ] 注册表监听 `TokenCreated` + 历史回填
-- [ ] 监听 `BondingCurveTax` / `ProcessTaxTokens` 触发 debounced dispatch
+- [ ] 监听 `BondingCurveTax` / `ProcessTaxTokens`（Cosm 短名；勿只订已废弃的 `FlapTaxProcessor*`）触发 debounced dispatch
+- [ ] 索引器已按 §3.4 改订 `CosmTrigger*` / `CosmDividend*` / `DispatchExecuted`
 - [ ] `requiresMEVProtection` 代币走 `batchDispatch`，其余走 permissionless
 - [ ] dividendMode=2 配置 converter 私钥
 - [ ] 可选：`batchDistributeDividend`
