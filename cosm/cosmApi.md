@@ -24,11 +24,11 @@
 
 ## 合约地址（前端调用）
 
-> **2026-08-09 主网全量重部署** · `cosm-v0.8.0` · **Quote 白名单含 COSM**（`0x0D6aE45c…`，与 USDT/USDC/USD1 同档）· 税侧 Flap 对齐。  
-> 旧批次（`0xF2846c…` Portal / `0x3F7730…` VaultPortal / `0x8F7dBa…` Trigger / `0x19bfc9…` Converter 等）已废弃。  
-> 地址以 `deployments/bsc-56.json` / README 部署清单为准；整仓测试绿灯。  
+> **当前快照** · `cosm-v0.8.0`（`portal.version()`）· 权威文件 `deployments/bsc-56.json` / [README 地址表](./README.md)。  
+> Transparent **代理地址不变**；impl / facet / clone 模板经多次升级（含 `UpgradeCosmOnlyEvents`）后以 json 为准。  
 > 下表为前端需**直接 call** 的固定地址；impl / facet / migrator / dispatch 等由协议内部使用，**勿写进前端配置**。  
-> **金库工厂** = Transparent proxy；**金库实例** = BeaconProxy（前端业务方法名不变）。
+> **金库工厂** = Transparent proxy；**金库实例** = BeaconProxy（前端业务方法名不变）。  
+> **ABI 注意：** 升级后**只发 Cosm 名事件 / 方法**（不再同时发 `Flap*`）；对照见 [§ABI 对照](#abi--事件对照cosm-only)。
 
 ### 协议入口
 
@@ -65,23 +65,72 @@ Vanity salt 搜址：`Portal.standardTokenImpl()` / `Portal.taxTokenImpl()`（vi
 
 ### 链上 impl / 模块（运维参考，前端勿配置）
 
-完整清单：`deployments/bsc-56.json`。Portal 发币已拆为 **Launcher 簇**（`delegatecall`）；前端仍只调 **Portal proxy**。
+完整清单：`deployments/bsc-56.json` / README。Portal 发币已拆为 **Launcher 簇**（`delegatecall`）；前端仍只调 **Portal proxy**。  
+**代理不变**；下列为 `UpgradeCosmOnlyEvents` 后的当前 impl / facet / clone 模板。
 
 | 键 | 地址 | 说明 |
 |----|------|------|
-| `portalImpl` | `0x33D034AAa42CB587B41b8DAfE958A2D601D1392f` | CosmPortal 薄代理 impl |
-| `portalTrade` | `0xdC807D33b40da6845f9027f033DCacc8CC6F9990` | 买卖模块 |
-| `portalTradeDex` | `0x56766E11D7E8e939433F0Bb5eba8f747038437f3` | DEX 路由辅助 |
-| `portalLaunch` | `0x68009d2599Bd09b789A83dfd87F9Bed4A7503c11` | Launcher 总入口（`newTokenV6/V7` 路由） |
-| `portalLaunchTwoStep` | `0x2638Ee07785f97BA8e7376aA034994a68868a2BC` | Two-step：`stageNewTokenV5` / `commitNewTokenV5`（**仅 saleForge**） |
-| `portalLauncherV5` … `V7Tax` | 见 json / README | V5/V6/V7 具体实现（内部） |
-| `portalMigrate` | `0xebF4eBccFc840B66106c4932D513411921077879` | 迁移模块 |
-| `vaultImpl` | `0x17Edc23B129a3570c214B2FaAbB2488C24C86A24` | CosmVaultPortal 薄代理 impl |
-| `proxyAdmin` | `0x2A4C566C9Aeb733D3FcC10ad8c2A6BE1cd3A7746` | Transparent 代理管理员（Portal/Vault/Trigger/Converter/六工厂） |
-| `triggerImpl` | `0x5bec8FaDE3005aa28E841f66c6d0cA7fDbce5522` | CosmTriggerService impl |
-| `vaultLens` / `vaultLaunch` / `vaultTweak` | 见 json | VaultPortal 三模块 |
-| `defaultTaxConverter` | `0x3725B42BfDa1Ef33a7eEb8c0465675Ee72aa0001` | 与 `converterProxy` 相同 |
-| `taxSplitterImpl` / `taxSplitterDispatchImpl` | 见 json | 税清算模板（含 2026-08-09 Flap 对齐） |
+| `proxyAdmin` | `0x2A4C566C9Aeb733D3FcC10ad8c2A6BE1cd3A7746` | Transparent 代理管理员 |
+| `portalImpl` | `0x6182719cb38B3C45Cb9a5f3b7b5e9d304d8313D8` | CosmPortal 薄代理 impl |
+| `portalTrade` | `0xB624279Ba9Ae13Ff097E2D3032222f8f4364B2B8` | 买卖模块 |
+| `portalTradeDex` | `0xDb379688Baed20B06006b1F83Bc1A7d4b2d8d3ca` | DEX 路由辅助 |
+| `portalDexRouter` | `0xed1BBB2DF3921f0955B928403c43A0fD778aB802` | DEX Router facet |
+| `portalLaunch` | `0x211922D61e7C08792119786B0A3D1BdA50698AE5` | Launcher 总入口 |
+| `portalLaunchTwoStep` | `0xA77BE6ad7FeB5045Ef38bc247C0f7ff322Febc54` | Two-step（**仅 saleForge**） |
+| `portalLauncherV5` | `0x4Cd79D31e062e16A3C287513BE3B20f20bD531d9` | 内部 |
+| `portalLauncherV5Tax` | `0xf4D13A2ceF0f79DbaEb4B267Ece2053A242Fca54` | 内部 |
+| `portalLauncherV6` | `0x25528eb9aADcb1f21a1E9fE73c6817DfbB000425` | 内部 |
+| `portalLauncherV7` | `0x04201d097A7B499B923F2Ad8BAf3868D0Ac009ff` | 内部 |
+| `portalLauncherV7Tax` | `0x57c08a365ad0CdB827A539dCb04FBEb15A546fD1` | 内部 |
+| `portalMigrate` | `0xB14a5e8E4209e1B0F04E963aF09f6eF511a612ef` | 迁移模块 |
+| `portalLens` / `portalLensV2` | `0x9eE0Fe95…` / `0xa3089E99…` | 只读 lens |
+| `vaultImpl` | `0x9304020651A5C122456F17B9bfe28CE00F99DDeE` | CosmVaultPortal impl |
+| `vaultLens` / `vaultLaunch` / `vaultTweak` | `0xB0b2c44E…` / `0x30B4C7c1…` / `0xCbBc82e1…` | VaultPortal 三模块 |
+| `triggerImpl` | `0xbDbDB658f5D5eFb15d079568e58EedE70F34FdCA` | CosmTriggerService impl |
+| `standardImpl` / `taxImpl` | `0x2793D7a0…` / `0xbf02cAF2…` | 新币 CREATE2 模板 |
+| `taxSplitterImpl` | `0x668F96983e17b5bE27f9eB9570fb25D14eC3Acf2` | 新税币 TaxSplitter 模板 |
+| `taxSplitterDispatchImpl` | `0xcf1abc2A21f77332B1f45eEAC7D63e478Bb18d5F` | Dispatch delegatecall 目标 |
+| `taxSplitterLiteImpl` | `0x60303CAc16Cbd2BA5BE726D7a74AFCDfA5d48CFa` | Lite 模板 |
+| `dividendImpl` | `0xbCA5686ab764eb809648a544eb1F70Ed239BFcE4` | 新币 Dividend 模板 |
+| `defaultTaxConverter` | `0x3725B42BfDa1Ef33a7eEb8c0465675Ee72aa0001` | = `converterProxy` |
+
+> 已存在的 EIP-1167 clone（老税币 / 老 TaxSplitter / 老 Dividend）**仍跑旧 bytecode**（可能仍含历史 `Flap*` 事件）；**新发射**代币走上表模板。
+
+## ABI / 事件对照（Cosm-only）
+
+> 有意分叉（见 `docs/FLAP_BSC_PARITY.md`）：行为与 Flap 对齐，但**同一次调用不再同时触发** `Flap*` + `Cosm*`；只保留 Cosm 名或无 Flap 前缀的短名。  
+> 索引器 / 前端请改订阅下表「当前」列；旧 `Flap*` topic 仅对升级前已部署的 clone / 历史区块有意义。
+
+### 方法 / 枚举（selector 或名称变更）
+
+| 旧（已移除 / 勿再调） | 当前 | 说明 |
+|----------------------|------|------|
+| `setFlapFeeProfile(token, profile)` | `setFeeProfile(token, profile)` | Portal owner；旧 selector 已不存在 |
+| `flapBlackHole()` | `cosmBlackHole()` | CosmDividend view |
+| `FeeProfile.FEE_FLAPSALE_V0` | `FeeProfile.FEE_SALE_V0` | **枚举序值仍为 `1`**，仅改名 |
+
+前端日常方法（`newTokenV6/V7` · `swapExactInput` · `dispatch` · `withdrawDividends` 等）**名称未变**。
+
+### 事件（索引器必改）
+
+| 旧（已不再由新实现发出） | 当前应订阅 |
+|--------------------------|------------|
+| `TransferFlapToken` | `TransferCosmToken`（from/to **不** indexed） |
+| `FlapTokenProgressChanged` | `TokenProgressChanged` |
+| `FlapSaltLocked` / `FlapSaltUsed` | `CosmSaltLocked` / `CosmSaltUsed` |
+| `FlapTokenStaged` | `CosmTokenStaged` |
+| `FlapTokenMaxBuyPerOriginSet` | `MaxBuyPerOriginSet` |
+| `FlapBuyQuotaUpdated` | `CosmBuyQuotaUpdated` |
+| `FlapTriggerRequested` / `Executed` / `Skipped` / … | `CosmTriggerRequested` / `CosmTriggerExecuted` / `CosmTriggerSkipped` / … |
+| `FlapDividendDeposited` / `Distributed` / `ShareChanged` / … | `CosmDividendDeposited` / `CosmDividendDistributed` / `CosmDividendShareChanged` / … |
+| `FlapTaxProcessorDispatchExecuted` | `DispatchExecuted` |
+| `FlapTaxProcessorBondingCurveTax` | `BondingCurveTax` |
+| `FlapTaxProcessorProcessTaxTokens` | `ProcessTaxTokens` |
+| `FlapTaxProcessorTokensParked` / `BurnExecuted` / … | `TokensParked` / `BurnExecuted` / …（短名） |
+| `FlapDispatchReady` | `CosmDispatchReady` |
+| `FlapTaxVaultTokenCreated` / `FlapTaxVaultFactoryRegistered` / … | `CosmTaxVaultTokenCreated` / `CosmTaxVaultFactoryRegistered` / … |
+
+错误名：`FlapSaltLockedByAnotherUser` → `CosmSaltLockedByAnotherUser`。
 
 ### Quote 白名单
 
@@ -603,7 +652,7 @@ Invalid(0) ──发币成功──► Tradable(1) ──达阈值/手动迁移�
 | 值 | 名称 | 曲线买卖协议费 | 迁移费 LIQUIDITY/RESERVE |
 |----|------|----------------|--------------------------|
 | `0` | `FEE_GLOBAL_DEFAULT` | `protocolFeeBps` / `protocolSellFeeBps`（默认各 100=1%） | `liquidityFeeBps` / `reserveFeeBps`（默认 0） |
-| `1` | `FEE_FLAPSALE_V0` | 买卖各固定 `100` | `0` |
+| `1` | `FEE_SALE_V0`（原名 `FEE_FLAPSALE_V0`） | 买卖各固定 `100` | `0` |
 | `2` | `FEE_ZERO` | `0` | `0` |
 
 发币默认 `0`；仅 owner 可改。列表页一般不展示；详情可从 `getToken` 读。
@@ -1209,8 +1258,8 @@ python3 tools/find_vanity.py --predict --portal 0xb4B057dEFda3822786F998FC54Aa93
 | `TokenProgressChanged` | `token` · `progress`（Wad） |
 | `TokenMigrated` | `token` · `pool` · `migratorKind`（2=V2 · 3=V3 · 4=Infinity） |
 | `CosmTaxVaultTokenCreated` | VaultPortal 路径 B：`token` · `vault` · `factory` |
-| `FlapTaxProcessorBondingCurveTax` / `ProcessTaxTokens` | 税累账（可选展示 pending） |
-| `FlapTaxProcessorDispatchExecuted` | 税已打出（刷新 mkt/分红余额） |
+| `BondingCurveTax` / `ProcessTaxTokens` | 税累账（可选展示 pending） |
+| `DispatchExecuted` | 税已打出（刷新 mkt/分红余额） |
 
 新币发现：`TokenCreated` + 校验 `predictTokenAddress` vanity。Quote 配置：`getQuoteTokenConfiguration(quote).nativeToQuoteSwapType` ≠ `SWAP_DISABLED` 时允许 BNB 一键买 ERC20 quote。
 
@@ -1661,7 +1710,7 @@ const me = await vault.read.getUserInfo([userAddress]); // scheduled-buyback 无
 
 **Case3（`dividendMode=2`）：** 用户按钮应调 `CosmTaxConverter.triggerSplit([token])` 或提示 keeper 调 `batchDispatch`；**不要** EOA 直调 `splitter.dispatch()`（MEV 保护会 revert）。
 
-事件（索引 / 刷新 UI）：`FlapTaxProcessorBondingCurveTax` · `FlapTaxProcessorProcessTaxTokens` · `FlapTaxProcessorDispatchExecuted` · `FlapDispatchReady`（Infinity V7 + lpBps>0 时）。
+事件（索引 / 刷新 UI）：`BondingCurveTax` · `ProcessTaxTokens` · `DispatchExecuted` · `CosmDispatchReady`（Infinity V7 + lpBps>0 时）。详见 [§ABI 对照](#abi--事件对照cosm-only)。
 
 ---
 
@@ -1680,7 +1729,7 @@ BSC **V6 税币**走 PCS V2 + `CosmTaxSplitter`（= Flap `TaxProcessorUniV2`）�
 
 `CosmInfinityCLHook.afterSwap` 会 try 调 `checkAndNotifyDispatch()`。**标准 V7 Infinity + 完整 CosmTaxSplitter**（`lpBps>0`）在 pending LP fee ≥ `dispatchThreshold` 时会 **emit `CosmDispatchReady`**；BSC V2 税币 / 无 V4 源 / Lite processor 仍为 no-op。
 
-`CosmDispatchReady` / `dispatchThreshold` 语义对齐 Flap `FlapDispatchReady`（TaxProcessorUniV4 Infinity LP fee）。Cosm 默认 `dispatchThreshold`：BNB ≈ `0.05 ether`。
+`CosmDispatchReady` / `dispatchThreshold` 语义对齐 Flap TaxProcessorUniV4 Infinity LP fee 信号（事件名仅 Cosm）。Cosm 默认 `dispatchThreshold`：BNB ≈ `0.05 ether`。
 
 ### 服务端怎么做（Flap 模式，勿自创 bucket 监听逻辑）
 
@@ -1794,7 +1843,7 @@ if (ready && status.ready) {
 | `state()` | `0` BondingCurve · `1` Migrating · `2` TaxEnforcedAntiFarmer · `3` TaxEnforced · `4` TaxFree |
 | `getPoolStateData()` | 一次读：状态 · 买卖税 · 清算阈值 · 税到期 · anti-farmer 到期 |
 | `liquidationThreshold()` | DEX 大额卖触发清算阈值 |
-| `TransferFlapToken` / `TransferCosmToken` | from/to **不** indexed（索引器用） |
+| `TransferCosmToken` | from/to **不** indexed（索引器用；旧名 `TransferFlapToken` 已废弃） |
 | `PoolStateChanged` | DEX 税阶段切换 |
 
 卖出：曲线 → `approve(Portal)`；已迁移 → 站内仍可走 Portal，或 `approve(PCS V2 Router)`。  
