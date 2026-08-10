@@ -2,8 +2,9 @@
 
 > 来源：`contracts/`（不含 `vendor/`）。字段顺序与 Solidity 一致。  
 > 注释格式：`字段 // 使用场景 · 约束/默认值 · [Flap 兼容] 说明`  
-> 协议版本 **`cosm-v0.8.0`**（`Portal.version()`）· 地址见 `deployments/bsc-56.json` / [`api.md`](./api.md)  
-> **架构变更：** Portal 发币由单一 Launch 改为 **Launcher 簇**（`CosmPortalLauncher` + V5/V6/V7/TwoStep）；前端日常只调 Portal proxy 的 `newTokenV6` / `newTokenV7`；`stageNewTokenV5` / `commitNewTokenV5` **仅 saleForge**（TwoStep）。路径 B 仍走 VaultPortal。
+> 协议版本 **`cosm-v0.8.0`**（`Portal.version()`）· 地址见 `deployments/bsc-56.json` / [`api.md`](./api.md) / [README](./README.md)  
+> **架构变更：** Portal 发币由单一 Launch 改为 **Launcher 簇**（`CosmPortalLauncher` + V5/V6/V7/TwoStep）；前端日常只调 Portal proxy 的 `newTokenV6` / `newTokenV7`；`stageNewTokenV5` / `commitNewTokenV5` **仅 saleForge**（TwoStep）。路径 B 仍走 VaultPortal。  
+> **ABI 有意分叉（Cosm-only）：** `FEE_FLAPSALE_V0` → `FEE_SALE_V0`（序值仍为 `1`）；事件 / 部分方法仅 Cosm 名，对照见 [`api.md` §ABI 对照](./api.md#abi--事件对照cosm-only)。
 
 ---
 
@@ -64,7 +65,7 @@ enum TokenStatus {
 ```solidity
 enum FeeProfile {
     FEE_GLOBAL_DEFAULT,  // 0  默认；曲线协议费读 Portal.protocolFeeBps(100) / protocolSellFeeBps(100)；迁移费读 liquidityFeeBps / reserveFeeBps
-    FEE_FLAPSALE_V0,     // 1  [Flap 兼容] 曲线买卖协议费固定 100 bps；迁移 LP/储备费=0
+    FEE_SALE_V0,         // 1  曲线买卖协议费固定 100 bps；迁移 LP/储备费=0（原名 FEE_FLAPSALE_V0，序值不变）
     FEE_ZERO             // 2  曲线协议费=0；迁移费=0；白名单/特殊活动
 }
 ```
@@ -118,7 +119,7 @@ struct LaunchParams {
     string symbol;                  // ERC20.symbol()；链上符号
     string meta;                    // metaURI(IPFS/HTTPS)；图标/描述在 JSON 内
     bytes32 salt;                   // CREATE2 salt；预测地址低 16 bit：税币 0x0111 · 普通 0x0222
-    address quoteToken;             // 曲线 quote；address(0)=BNB · 或 USDT/USDC/USD1/USDX
+    address quoteToken;             // 曲线 quote；address(0)=BNB · 或 USDT/USDC/USD1/COSM
     uint256 quoteAmt;               // 发币同步买入 quote 量(最小单位)；0=只发不买；BNB 用 msg.value · ERC20 先 approve
     address beneficiary;            // 营销/金库收款(TaxSplitter.market)；路径 A=钱包 · B=金库 · 普通无税=0
     uint16 buyTaxBps;               // 曲线买入侧 tax(bps)；普通币=0；税币至少 buy/sell 一侧>0
@@ -210,7 +211,7 @@ struct TokenStateV8Safe {
     uint256 k;                      // 曲线常数 k
     uint256 dexSupplyThresh;        // 迁移阈值；默认 800_000_000 ether
     address quoteTokenAddress;      // quote 地址；BNB=address(0)
-    bool nativeToQuoteSwapEnabled;  // ERC20 quote 是否支持一键 BNB 买；USDT/USDC/USD1=true · BNB/USDX=false
+    bool nativeToQuoteSwapEnabled;  // ERC20 quote 是否支持一键 BNB 买；USDT/USDC/USD1/COSM=true · BNB=false
     bytes32 extensionID;            // 扩展插件 ID；= TokenState.extensionID；无扩展=bytes32(0)
     uint256 buyTaxRate;             // = buyTaxBps
     uint256 sellTaxRate;            // = sellTaxBps
@@ -534,7 +535,7 @@ struct NewTokenV7Params {
     DexThreshType dexThresh;        // 迁移阈值枚举；默认 FOUR_FIFTHS→800M
     bytes32 salt;                   // CREATE2；普通低16bit=0x0222 · 税=0x0111
     MigratorType migratorType;      // 普通默认 Infinity(3)；可显式 V3(0)
-    address quoteToken;             // 曲线 quote；0=BNB · 或 USDT/USDC/USD1/USDX
+    address quoteToken;             // 曲线 quote；0=BNB · 或 USDT/USDC/USD1/COSM
     uint256 quoteAmt;               // 发币同步买入量；0=不买；BNB→msg.value
     bytes permitData;               // ERC20 quote 的 EIP-2612；空=须先 approve Portal
     bytes32 extensionID;            // 已注册扩展 ID；无=bytes32(0)
@@ -569,8 +570,8 @@ struct ExactInputV3Params {
 
 # CosmVaultPortal (`ICosmVaultPortalTypes.sol`)
 
-> 路径 B：发币 + 金库 · BSC proxy `0x9e9e9a2392a379fA03c268098Cd9374d7885c55D`  
-> 薄代理 delegatecall：Lens(读) / Launch(发) / Tweak(管理)
+> 路径 B：发币 + 金库 · BSC proxy `0xE3BDE2e728F5a9a5FD5bdda87B067a55bf593183`  
+> 薄代理 delegatecall：Lens(读) / Launch(发) / Tweak(管理) · 当前 impl 见 `deployments/bsc-56.json`
 
 ## enum RiskLevel
 
@@ -1632,7 +1633,7 @@ struct SplitPositionParams {
 | dexSupplyThresh | 800_000_000 ether | FOUR_FIFTHS / TokenState=0 |
 | bondingCurveFeeBps | 125(V7) / 0(税) | 曲线协议费 |
 | protocolFeeBps | 100 (1%) | 全局曲线协议费(税币→feeReceiver) |
-| feeProfile | FEE_GLOBAL_DEFAULT | TokenState |
+| feeProfile | FEE_GLOBAL_DEFAULT（`0`）· 可选 `FEE_SALE_V0`（`1`） | TokenState |
 | migratorType | V2(税) / Infinity(普通) | 强制/默认 |
 | vanity suffix | 0x0111 税 / 0x0222 普通 | CREATE2 |
 | lpFeeProfile | 0 STANDARD | V3 0.25% |
