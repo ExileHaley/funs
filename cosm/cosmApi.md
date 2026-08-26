@@ -8,7 +8,7 @@
 
 | 场景 | 合约 · 方法 | 章节 |
 |------|-------------|------|
-| 固定入口地址 | Portal · VaultPortal · Trigger · Converter · 6 工厂 | [§合约地址](#合约地址前端调用) |
+| 固定入口地址 | Portal · VaultPortal · Trigger · Converter · 7 工厂 | [§合约地址](#合约地址前端调用) |
 | 无税发币 | `Portal.newTokenV7` | [§1 无税](#1-无税代币--创建入口) |
 | 有税路径 A | `Portal.newTokenV6` | [§2 路径 A](#2-有税--不带-vault路径-a创建入口) |
 | 有税路径 B + 金库 | `VaultPortal.newCosmTokenV6WithVault` | [§3 路径 B](#3-有税--带-vault路径-b创建入口) · [Schema 指南](#金库-schema-使用指南) |
@@ -18,7 +18,7 @@
 | 曲线 / DEX 买卖 | `quoteExactInput` · `swapExactInput` | [§4 曲线交易](#4-曲线阶段交易status--tradable) · [§5 DEX](#5-迁移后交易status--dex仍走-portal) |
 | 插件币 | `swapExactInputV3` | [§ExactInputV3Params](#exactinputv3params--portalswapexactinputv3) |
 | 税打出 / 分红领 | `TaxSplitter.dispatch` · `CosmDividend.withdrawDividends` | [§TaxSplitter 前端](#taxsplitter-前端只读--dispatch) · [§CosmDividend](#cosmdividend-方法) |
-| 金库页 | `vaultUISchema` · `getStatus` · `getUserInfo` | [§六金库前端读写](#六金库前端读写方法用途与场景) · [§金库实例](#金库实例方法完整列表) |
+| 金库页 | `vaultUISchema` · `getStatus` · `getUserInfo` | [§七金库前端读写](#七金库前端读写方法用途与场景) · [§金库实例](#金库实例方法完整列表) |
 | TypeScript 常量 | `PORTAL` / `VAULT_FACTORY` 等 | [§TypeScript 常量](#typescript-常量) |
 | 常见 revert | simulate 错误文案 | [§常见 Revert](#常见-revert-错误前端) |
 
@@ -36,7 +36,7 @@
 |------|------|------|
 | CosmPortal | `0xb4B057dEFda3822786F998FC54Aa93440caEDb6c` | 发币、曲线/DEX 买卖、状态查询、迁移 |
 | CosmVaultPortal | `0xE3BDE2e728F5a9a5FD5bdda87B067a55bf593183` | 有税路径 B（带金库发币） |
-| CosmTriggerService | `0x0B8dD41a583f456DD733b2a35CA28D61F6204e08` | 链上调度器；scheduled-buyback 金库通过它预约/回调回购 |
+| CosmTriggerService | `0x0B8dD41a583f456DD733b2a35CA28D61F6204e08` | 链上调度器；`scheduled-buyback` / `floor-burn` 金库通过它预约/回调 |
 | CosmTaxConverter | `0x3725B42BfDa1Ef33a7eEb8c0465675Ee72aa0001` | Case3 / keeper：batch dispatch、trigger split（Flap `TaxDistributionHelper` proxy） |
 
 ### 发币后按 token 读取（勿写死）
@@ -62,6 +62,7 @@ Vanity salt 搜址：`Portal.standardTokenImpl()` / `Portal.taxTokenImpl()`（vi
 | LP Staking Dividend | `0xAec0EcFd308a24039aC299A7Fb8Da165EC405074` | `lp-staking-dividend` |
 | Token Staking Dividend | `0xf14a4Aa3D702af1416dF91e8372E7f9101F7c3a1` | `token-staking-dividend` |
 | Rank Burn Dividend | `0x9abC0D6516d4a023280EADaB82397b99521AB98f` | `rank-burn-dividend` |
+| Floor Burn | `0xda41EBD72a6c69FDdD047e061DCE5705Ba1Cea88` | `floor-burn` |
 
 ### 链上 impl / 模块（运维参考，前端勿配置）
 
@@ -181,14 +182,14 @@ Schema 是链上 UI 元数据，**不参与签名**；业务校验在 `onBeforeL
 | 无税发币 | `Portal.newTokenV7`，无 vault |
 | 有税 · 税进钱包（路径 A） | `Portal.newTokenV6` + `TaxSplitter.dispatch` + 可选 `CosmDividend` |
 | 列表 / K 线 / 曲线买卖 | `Portal.getTokenV8Safe` / `quoteExactInput` / `swapExactInput` |
-| scheduled-buyback 回购执行 | **keeper** 监听 `CosmTriggerRequested`，`isRequestReady(id)` 且 vault `getStatus().ready` 时调 `TriggerService.trigger(requestId)`（`TRIGGER_ROLE`） |
+| scheduled-buyback / floor-burn 执行 | **keeper** 监听 `CosmTriggerRequested`，`isRequestReady(id)` 且 vault `getStatus().ready` 时调 `TriggerService.trigger(requestId)`（`TRIGGER_ROLE`） |
 | 有税 · TaxSplitter 四路打出 | **Flap BSC V2 语义**：swap **只累账**；keeper **主动**调 `TaxSplitter.dispatch()`（无 swap 后链上信号） |
 
 ### 步骤 A — 发币页（`vaultDataSchema`）
 
 路径 B 入口：**推荐** `VaultPortal.newCosmTokenV6WithVault`（也可用 Flap 布局 `newTokenV6WithVault`）· quote **仅 BNB** · `mktBps > 0`。
 
-1. **展示玩法列表** — 硬编码 §金库工厂 六个地址，或读 `VaultPortal` 工厂注册事件。
+1. **展示玩法列表** — 硬编码 §金库工厂 七个地址，或读 `VaultPortal` 工厂注册事件。
 2. **用户选中工厂** → `factory.vaultDataSchema()`  
    返回 `{ description, fields[], isArray }`；按 `fields` 顺序渲染控件（`isArray=true` 时支持动态增删行，如 split 收款人）。  
    **仅表单发现，不做业务校验。**
@@ -314,6 +315,7 @@ VaultPortal 自身还会在发币时检查：`mktBps > 0`、`mktBps + deflationB
 | `scheduled-buyback` | 触发/回购参数在工厂允许范围内 |
 | `burn-dividend` / `lp-staking-dividend` / `token-staking-dividend` | 空 `0x` |
 | `rank-burn-dividend` | 空 `0x` 或 `abi.encode(uint256 minBurnAmount)` |
+| `floor-burn` | `intervalMinutes≥1` 整数；`bnbPerBurn` 0.01–1 ether、最多三位小数；`remainingFloor≤1e9 ether`；`postCapRecipient≠0` |
 
 完整编码见 [§工厂地址与 vaultData](#工厂地址与-vaultdata)。
 
@@ -376,7 +378,7 @@ await splitter.write.dispatch();
 
 **lp-staking：** pair 在发币时与 `CosmTaxToken.mainPool` 相同（CREATE2 预测），迁移后即可 stake LP，**无需** `setPair`。
 
-### 六个 vaultType 速览
+### 七个 vaultType 速览
 
 | vaultType | 发币 `vaultData` | 详情页 UISchema 重点 | 写操作谁调 |
 |-----------|------------------|----------------------|------------|
@@ -386,6 +388,7 @@ await splitter.write.dispatch();
 | `token-staking-dividend` | 空 | `stake` / `withdraw` / `claim` | 用户 |
 | `lp-staking-dividend` | 空 | 同 staking | 用户 |
 | `rank-burn-dividend` | `minBurnAmount`（可空） | `burn` / `claim` + Top10 | 用户 |
+| `floor-burn` | 间隔 / 每次 BNB / 剩余下限 / 达标收款地址 | 只读 `getStatus` / 倒计时 / `isFloorReached` | keeper → `TriggerService.trigger`；达标后税自动打出 |
 
 完整 ABI 字段见 [§金库实例方法](#金库实例方法完整列表) · 结构体定义见 [§金库 UI Schema 类型](#金库-ui-schema-类型vaultdataschema--vaultuischema)。
 
@@ -1321,16 +1324,17 @@ python3 tools/find_vanity.py --predict --portal 0xb4B057dEFda3822786F998FC54Aa93
 | `lp-staking-dividend` | `0xAec0EcFd308a24039aC299A7Fb8Da165EC405074` | 空 `0x`（pair 发币时 CREATE2 预测，同 `CosmTaxToken.mainPool`） |
 | `token-staking-dividend` | `0xf14a4Aa3D702af1416dF91e8372E7f9101F7c3a1` | 空 `0x` |
 | `rank-burn-dividend` | `0x9abC0D6516d4a023280EADaB82397b99521AB98f` | `abi.encode(uint256 minBurnAmount)`；也可空=`0` |
+| `floor-burn` | `0xda41EBD72a6c69FDdD047e061DCE5705Ba1Cea88` | `abi.encode(intervalMinutes, bnbPerBurn, remainingFloor, postCapRecipient)` · 间隔整分钟 ≥1 · `bnbPerBurn` 0.01–1 ether、最多三位小数 · `remainingFloor≤1_000_000_000 ether` · 达标后税立刻打给 `postCapRecipient` |
 
 ---
 
 ---
 
-## 六金库前端读写方法（用途与场景）
+## 七金库前端读写方法（用途与场景）
 
 > **入口：** `const vault = (await vaultPortal.read.tryGetVault([token])).vault`（或 `getVault`）。  
 > **前提：** 路径 B 发币（`newCosmTokenV6WithVault`）· quote **仅 BNB**。  
-> **通用读（六个都有）：** `vaultUISchema()` · `vaultType()` · `getStatus()` · `taxToken()` · `factory()` · `creator()` · `quoteToken()` · `description()`  
+> **通用读（七个都有）：** `vaultUISchema()` · `vaultType()` · `getStatus()` · `taxToken()` · `factory()` · `creator()` · `quoteToken()` · `description()`  
 > **税入账：** 被动 `receive()`，前端不用调。
 
 ### 速查：每个玩法前端要调什么
@@ -1343,6 +1347,7 @@ python3 tools/find_vanity.py --predict --portal 0xb4B057dEFda3822786F998FC54Aa93
 | `token-staking-dividend` | 质押税币领 BNB | `getStatus` · `getUserInfo` · `pendingReward` | `stake` · `withdraw` · `claim` | 用户（stake 前 approve 税币） |
 | `lp-staking-dividend` | 质押 LP 领 BNB | 同上 + `pair()` | `stake` · `withdraw` · `claim` | 用户（stake 前 approve **LP=`pair()`**） |
 | `rank-burn-dividend` | 烧币上榜领双池 | `getStatus` · `getUserInfo` · `topBurnersList` · `pendingRank` | `burn` · `claim` | 用户（approve 税币） |
+| `floor-burn` | 买到剩余下限再打指定地址 | `getStatus` · `canTrigger` · `countdownSeconds` · `isFloorReached` | 转 BNB 充值；**买/销毁由 keeper** | 用户只充值；keeper `TriggerService.trigger` |
 
 ### 1) `split` — 按 bps 分税
 
@@ -1419,6 +1424,19 @@ python3 tools/find_vanity.py --predict --portal 0xb4B057dEFda3822786F998FC54Aa93
 | 写 | `burn(amount)` | 烧币上榜；`amount >= minBurnAmount`；先 approve 税币 |
 | 写 | `claim()` | 领取权重分红 + 排行榜分红 |
 
+### 7) `floor-burn` — 剩余下限销毁
+
+**用途：** 税/充值 BNB 按间隔、每次固定额度买本币打到 dead，直到未销毁剩余量落到 `remainingFloor` 的 ±3000 枚以内；之后进金库的税 BNB **立刻**打给发币时指定的 `postCapRecipient`。前端**不执行买/销毁**。Keeper 调用方式与 `scheduled-buyback` 相同：`CosmTriggerService.trigger(requestId)`。
+
+| 类型 | 方法 | 用途 / 场景 |
+|------|------|-------------|
+| 读 | `getStatus()` | **首选**：倒计时、`ready`、未销毁剩余、是否达标、`pendingRequestId` |
+| 读 | `canTrigger()` / `countdownSeconds()` / `isFloorReached()` | 状态条 / 倒计时 / 是否已达剩余下限 |
+| 读 | `nextTriggerAt()` · `nextSpendBnb()` · `remainingUnburned()` · `pendingRequestId()` | 细节展示 |
+| 写 | 向 vault 转 BNB（`receive`） | 用户「手动充值」；未达标则预约下一轮；已达标则立刻打给指定地址 |
+| 写 | ~~`vault.trigger`~~ | **禁止前端直调**；仅 `TriggerService` 回调 |
+| Keeper | `TriggerService.trigger(requestId)` | 同 `scheduled-buyback`：`isRequestReady` 且 `getStatus().ready` |
+
 ### 前端接入步骤（所有 vaultType）
 
 ```typescript
@@ -1429,7 +1447,7 @@ const vault = getContract({ address: info.vault, abi: vaultAbi }); // 或按 vau
 const type = await vault.read.vaultType();
 const schema = await vault.read.vaultUISchema(); // 动态按钮文案 / 顺序
 const status = await vault.read.getStatus();
-const me = await vault.read.getUserInfo([userAddress]); // scheduled-buyback 无 getUserInfo，用 getStatus
+const me = await vault.read.getUserInfo([userAddress]); // scheduled-buyback / floor-burn 无 getUserInfo，用 getStatus
 
 // 写操作：按 type 分支；需要 token/LP 的先 approve(vault)
 ```
@@ -1443,7 +1461,7 @@ const me = await vault.read.getUserInfo([userAddress]); // scheduled-buyback 无
 地址：`VaultPortal.getVault(token).vault`（先 `tryGetVault` 确认 `found`）。  
 收税均为被动入账（`receive`），无需主动调用。  
 前端聚合首选：`getStatus()`（池子）+ `getUserInfo(user)`（个人）；写操作见各表「操作」小节。  
-**场景说明优先读** [§六金库前端读写](#六金库前端读写方法用途与场景)。
+**场景说明优先读** [§七金库前端读写](#七金库前端读写方法用途与场景)。
 
 ### 通用（全部 vaultType）
 
@@ -1660,6 +1678,47 @@ const me = await vault.read.getUserInfo([userAddress]); // scheduled-buyback 无
 
 ---
 
+### `floor-burn` — 剩余下限销毁
+
+**UISchema：** `canTrigger` · `getStatus` · `countdownSeconds` · `isFloorReached`  
+**Keeper：** 与 `scheduled-buyback` 同一套 `CosmTriggerService.trigger(requestId)`（`TRIGGER_ROLE`）。监听 `CosmTriggerRequested`，**`isRequestReady(id)` 且 `vault.getStatus().ready===true`** 时回调。  
+**注意：** 无直调 `vault.trigger()`；每次预约消耗 `getFee()` BNB（默认 **0.0002 BNB**）。达标后不再挂号，后续 `receive()` 立刻打给 `postCapRecipient`。
+
+未销毁剩余 = `totalSupply − dead − 零地址`。最后一笔允许落在 `remainingFloor ± 3000 ether` 以内。
+
+#### 只读
+
+| 方法 | 返回 | 备注 |
+|------|------|------|
+| `getStatus()` | `FloorBurnStatus` | **首选** · 一次读齐页面 |
+| `canTrigger()` | `bool` | 时间窗到且余额够一次销毁（未达标时） |
+| `countdownSeconds()` | `uint256` | 距下次时间窗；已到点为 0 |
+| `isFloorReached()` | `bool` | 未销毁剩余已在下限 ±3000 内（或已标记达标） |
+| `nextTriggerAt()` / `nextSpendBnb()` | `uint256` | 下次时间 / 下次花费（最后一笔可能按报价缩减） |
+| `remainingUnburned()` | `uint256` | `totalSupply − dead − 零地址` |
+| `intervalSeconds()` / `bnbPerBurn()` / `remainingFloor()` | `uint256` | 配置 |
+| `postCapRecipient()` | `address` | 达标后税 BNB 收款地址 |
+| `lastTriggeredAt()` | `uint256` | 上次触发 |
+| `totalBurned()` / `totalBnbSpent()` / `triggerCount()` | `uint256` | 累计销毁 / 花费 / 次数 |
+| `pendingRequestId()` | `uint256` | 当前 TriggerService 预约 ID；**0=无 pending** |
+| `floorReached()` | `bool` | 已标记达标（锁存） |
+| `triggerService()` / `router()` | `address` | 调度器 / PCS V2 Router |
+| `FLOOR_TOLERANCE()` | `uint256` | `3000 ether` |
+| `MAX_REMAINING_FLOOR()` | `uint256` | `1_000_000_000 ether` |
+
+`FloorBurnStatus`：`intervalSeconds` · `bnbPerBurn` · `remainingFloor` · `postCapRecipient` · `lastTriggeredAt` · `nextTriggerAt` · `countdownSeconds` · `vaultBnb` · `nextSpendBnb` · `remainingUnburned` · `totalTokensBurned` · `totalBnbSpent` · `triggerCount` · `pendingRequestId` · `ready` · `floorReached`
+
+#### 操作
+
+| 方法 | 调用方 | 前置 | 备注 |
+|------|--------|------|------|
+| `trigger(uint256 requestId)` | **`CosmTriggerService` 回调** | `canTrigger()==true` 时买并打 dead | 实现 `ITriggerReceiver`；达标则打给 `postCapRecipient` 且不再预约 |
+| `receive()` / 转 BNB | 用户 / 税分 | — | 未达标：入账并预约；已达标：立刻打给指定地址 |
+
+事件：`Deposited` · `TriggerScheduled` · `FloorBurn` · `FloorReached` · `PostCapPayout`
+
+---
+
 ### vaultType → UISchema / 前端首选速查
 
 | vaultType | UISchema methods | 只读首选 | 写操作 |
@@ -1670,6 +1729,7 @@ const me = await vault.read.getUserInfo([userAddress]); // scheduled-buyback 无
 | `token-staking-dividend` | `stake`, `withdraw`, `claim` | `getStatus` · `getUserInfo` | `stake` · `withdraw` · `claim` |
 | `lp-staking-dividend` | `stake`, `withdraw`, `claim` | `getStatus` · `getUserInfo` | `stake` · `withdraw` · `claim` |
 | `rank-burn-dividend` | `burn`, `claim` | `getStatus` · `getUserInfo` · `topBurnersList` | `burn` · `claim` |
+| `floor-burn` | `canTrigger`, `getStatus`, `countdownSeconds`, `isFloorReached` | `getStatus` | keeper → `TriggerService.trigger` |
 
 ---
 
@@ -1743,9 +1803,9 @@ BSC **V6 税币**走 PCS V2 + `CosmTaxSplitter`（= Flap `TaxProcessorUniV2`）�
 
 **不要**把 `BondingCurveTax` / `ProcessTaxTokens` 当成 Flap 官方的 dispatch 触发信号——Flap BSC V2 也没有这类链上提醒。
 
-### scheduled-buyback（另一套 keeper）
+### scheduled-buyback / floor-burn（同一套 keeper）
 
-见下方 [§CosmTriggerService](#cosmtriggerservice-方法)：监听 **`CosmTriggerRequested`** → `TriggerService.trigger`（`TRIGGER_ROLE`）。与 TaxSplitter dispatch **无关**。
+见下方 [§CosmTriggerService](#cosmtriggerservice-方法)：监听 **`CosmTriggerRequested`** → `TriggerService.trigger`（`TRIGGER_ROLE`）。与 TaxSplitter dispatch **无关**。`floor-burn` 达标后不再挂号。
 
 ---
 
@@ -1777,7 +1837,7 @@ TaxSplitter 内部重逻辑经 **delegatecall** 至链上 `CosmTaxSplitterDispat
 默认：`getFee()=0.0002 ether` · `getMaxCallbackGas()=2_000_000` · 以链上 `getFee()` / `getMaxCallbackGas()` 为准。  
 **requestId 从 1 起号**（`++_requestCount`）；`0` 永不发放，供金库 `pendingRequestId==0` 表示「无 pending」。
 
-scheduled-buyback 金库实现 `ITriggerReceiver.trigger(uint256 requestId)`；keeper 执行 `CosmTriggerService.trigger(requestId)`。
+scheduled-buyback / floor-burn 金库实现 `ITriggerReceiver.trigger(uint256 requestId)`；keeper 执行 `CosmTriggerService.trigger(requestId)`。
 
 | 方法 | 调用方 | 备注 |
 |------|--------|------|
@@ -1790,11 +1850,11 @@ scheduled-buyback 金库实现 `ITriggerReceiver.trigger(uint256 requestId)`；k
 
 `TriggerRequest`：`requester` · `executeAfter` · `status`(PENDING/EXECUTED/FAILED) · `feePaid`。
 
-### Keeper 服务端（scheduled-buyback）
+### Keeper 服务端（scheduled-buyback / floor-burn）
 
 ```typescript
 // 1. 订阅 CosmTriggerService CosmTriggerRequested
-// 2. 过滤 requester 为 scheduled-buyback vault 地址
+// 2. 过滤 requester 为 scheduled-buyback / floor-burn vault 地址
 // 3. isRequestReady(requestId) && vault.getStatus().ready 时：
 
 const ready = await triggerService.read.isRequestReady([requestId]);
@@ -1813,6 +1873,7 @@ if (ready && status.ready) {
 
 - 调 fee/gas：`script/ConfigureCosmTrigger.s.sol`（`TRIGGER_GAS_FEE` · `TRIGGER_MAX_CALLBACK_GAS`）
 - 仅换 scheduled 工厂：`script/DeployScheduledBuybackFactory.s.sol`（本次全量部署已含 TriggerService 集成版工厂，通常不必单独跑）
+- 新增 floor-burn 工厂：`script/DeployFloorBurnFactory.s.sol`（已部署并登记；工厂代理 `0xda41EBD72a6c69FDdD047e061DCE5705Ba1Cea88`）
 
 ---
 
@@ -1925,5 +1986,6 @@ export const VAULT_FACTORY = {
   lpStakingDividend: "0xAec0EcFd308a24039aC299A7Fb8Da165EC405074",
   tokenStakingDividend: "0xf14a4Aa3D702af1416dF91e8372E7f9101F7c3a1",
   rankBurnDividend: "0x9abC0D6516d4a023280EADaB82397b99521AB98f",
+  floorBurn: "0xda41EBD72a6c69FDdD047e061DCE5705Ba1Cea88",
 } as const;
 ```
