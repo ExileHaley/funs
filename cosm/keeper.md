@@ -58,7 +58,7 @@ flowchart TB
 ## 3. 部署地址（BSC mainnet）
 
 > **当前快照** · `cosm-v0.8.0` · **地址真源**：`deployments/bsc-56.json` / README。  
-> Transparent **代理地址稳定**；impl 经多次升级（含 `UpgradeCosmOnlyEvents`）后以下表为准。  
+> Transparent **代理地址稳定**；impl 经多次升级（含 `UpgradeActualReceived`：转账扣费按余额实际增加记账）后以下表为准。  
 > **事件 / ABI：** 新实现**只发 Cosm 名**（不再同时发 `Flap*`）；对照见 [§3.4](#34-事件--方法对照cosm-only) 与 [`api.md` §ABI 对照](./api.md#abi--事件对照cosm-only)。  
 > **Trigger `requestId` 从 1 起**；`pendingRequestId==0` 仍表示金库无 pending。  
 > Vault **工厂**为 Transparent proxy；金库实例为 BeaconProxy（`trigger` / `getStatus` 等方法名不变）。  
@@ -68,7 +68,7 @@ flowchart TB
 
 | 合约 | Proxy | Implementation | Keeper 用途 |
 |------|-------|----------------|-------------|
-| CosmPortal | `0xb4B057dEFda3822786F998FC54Aa93440caEDb6c` | `0x6182719cb38B3C45Cb9a5f3b7b5e9d304d8313D8` | `getToken` 查 taxSplitter / dividend |
+| CosmPortal | `0xb4B057dEFda3822786F998FC54Aa93440caEDb6c` | `0xBB2eb5B95F79DCC1c73791c6d3EcC489CFd839dF` | `getToken` 查 taxSplitter / dividend |
 | CosmVaultPortal | `0xE3BDE2e728F5a9a5FD5bdda87B067a55bf593183` | `0x9304020651A5C122456F17B9bfe28CE00F99DDeE` | 查金库 `tryGetVault` |
 | CosmTriggerService | `0x0B8dD41a583f456DD733b2a35CA28D61F6204e08` | `0xbDbDB658f5D5eFb15d079568e58EedE70F34FdCA` | 定时回购 / 剩余下限销毁金库 callback |
 | CosmTaxConverter | `0x3725B42BfDa1Ef33a7eEb8c0465675Ee72aa0001` | `0xE7c11E0Bf080a12e19CE528b85715793e55bCaC9` | 批量 dispatch / 分红 |
@@ -84,10 +84,10 @@ JSON 字段：`portalProxy` / `portalImpl` · `vaultProxy` / `vaultImpl` · `tri
 |-------------|--------------|-------------|-------------|---------------------|
 | `split` | `0x98B345fde625DAc83E1bB478996f6a3FB2deC93e` | `0xcDd183410ee888d653655d4A5A1319D822bFd7E1` | `0xFb89A446477d720322415a6B3a09e016c99D1A36` | `0xFd14B970fB6F247C147d303d631991087459dCFe` |
 | `scheduled-buyback` | `0x2F9BB21010e28983895aD50fff7bd80a9D7637CE` | `0xa359a0Da328e5cF7864d47CCf737638e2Fc46071` | `0x71605E7A771874d35B64DA803cFd7226b15A02E9` | `0xF35CDD52729f762B99de2585Ef3Ce2D4a77d97bC` |
-| `burn-dividend` | `0xFfa993aCaFE3F6B13E68FF8DC388aC0BBc5383E5` | `0x33F08Cd41650BFd7E992D4b7745651F005E69eD1` | `0xa3B12f55f3403Aef2f228287Bb842c8c92F4aCcE` | `0x67B8Cbb74B17Dc377d8D198AcE91919dcA2e1A11` |
-| `lp-staking-dividend` | `0xAec0EcFd308a24039aC299A7Fb8Da165EC405074` | `0x3608B2f85207A8DBc79FABdB7c523AceC182AAe5` | `0x3Bc9727439A3b83d2A436f4A508a0DC327698D42` | `0x53b7DF45c0841a5D01dC81424b6229631bB6a486` |
-| `token-staking-dividend` | `0xf14a4Aa3D702af1416dF91e8372E7f9101F7c3a1` | `0x6C1c3DD1e5Fc5EF22FBd3B19CAFEC556a8fbA344` | `0x730513AA5c5303422191C15BCC704FA4DBC5F7D8` | `0xa357Fe191F164d0977DAffC59f82003378C39b73` |
-| `rank-burn-dividend` | `0x9abC0D6516d4a023280EADaB82397b99521AB98f` | `0xE565707da4A9B1a29e44A62E867bd53BBe41418C` | `0xb159DF554d411E68Ce91E47Bb88F699fEDdA9Eb7` | `0xa8459894d516519e48bBD2fCf7735b58078293d6` |
+| `burn-dividend` | `0xFfa993aCaFE3F6B13E68FF8DC388aC0BBc5383E5` | `0x33F08Cd41650BFd7E992D4b7745651F005E69eD1` | `0xa3B12f55f3403Aef2f228287Bb842c8c92F4aCcE` | `0x1F83686Ea4b802062C3b63276CA3b73D459c106F` |
+| `lp-staking-dividend` | `0xAec0EcFd308a24039aC299A7Fb8Da165EC405074` | `0x3608B2f85207A8DBc79FABdB7c523AceC182AAe5` | `0x3Bc9727439A3b83d2A436f4A508a0DC327698D42` | `0x3e1772C19F1dD84dFAF866AE602924187B619E19` |
+| `token-staking-dividend` | `0xf14a4Aa3D702af1416dF91e8372E7f9101F7c3a1` | `0x6C1c3DD1e5Fc5EF22FBd3B19CAFEC556a8fbA344` | `0x730513AA5c5303422191C15BCC704FA4DBC5F7D8` | `0x9e708074F0Da7F5F45ddc9DF598Ca040Fd874CB6` |
+| `rank-burn-dividend` | `0x9abC0D6516d4a023280EADaB82397b99521AB98f` | `0xE565707da4A9B1a29e44A62E867bd53BBe41418C` | `0xb159DF554d411E68Ce91E47Bb88F699fEDdA9Eb7` | `0x3CaDC81519f6067C6767e3B675bfDF5c41CE9FD8` |
 | `floor-burn` | `0xda41EBD72a6c69FDdD047e061DCE5705Ba1Cea88` | `0xB0A269E442d860c49718EB68d6a0D02490314b64` | `0x81C312319Ae20652e5a63d1dEE37972a657c948d` | `0xA96E6B3db4D5b8674436eb2e64aD2150a26Cc95a` |
 
 JSON 字段对照：`splitFactory` · `scheduledFactory` · `burnDivFactory` · `lpStakeFactory` · `tokenStakeFactory` · `rankBurnFactory` · `floorBurnFactory`。
@@ -768,7 +768,7 @@ rank_burn_dividend_factory: "0x9abC0D6516d4a023280EADaB82397b99521AB98f"
 floor_burn_factory: "0xda41EBD72a6c69FDdD047e061DCE5705Ba1Cea88"
 
 # 强校验 pin（与 §3.1 / §3.2 一致；也可用 deployments/bsc-56.json + 链上读 Beacon）
-portal_impl: "0x6182719cb38B3C45Cb9a5f3b7b5e9d304d8313D8"
+portal_impl: "0xBB2eb5B95F79DCC1c73791c6d3EcC489CFd839dF"
 vault_portal_impl: "0x9304020651A5C122456F17B9bfe28CE00F99DDeE"
 trigger_impl: "0xbDbDB658f5D5eFb15d079568e58EedE70F34FdCA"
 converter_impl: "0xE7c11E0Bf080a12e19CE528b85715793e55bCaC9"
