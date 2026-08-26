@@ -25,7 +25,7 @@
 ## 合约地址（前端调用）
 
 > **当前快照** · `cosm-v0.8.0`（`portal.version()`）· 权威文件 `deployments/bsc-56.json` / [README 地址表](./README.md)。  
-> Transparent **代理地址不变**；impl / facet / clone 模板经多次升级（含 `UpgradeCosmOnlyEvents`）后以 json 为准。  
+> Transparent **代理地址不变**；impl / facet / clone 模板经多次升级（含 `UpgradeActualReceived`：转账扣费按余额实际增加记账）后以 json 为准。  
 > 下表为前端需**直接 call** 的固定地址；impl / facet / migrator / dispatch 等由协议内部使用，**勿写进前端配置**。  
 > **金库工厂** = Transparent proxy；**金库实例** = BeaconProxy（前端业务方法名不变）。  
 > **ABI 注意：** 升级后**只发 Cosm 名事件 / 方法**（不再同时发 `Flap*`）；对照见 [§ABI 对照](#abi--事件对照cosm-only)。
@@ -67,32 +67,36 @@ Vanity salt 搜址：`Portal.standardTokenImpl()` / `Portal.taxTokenImpl()`（vi
 ### 链上 impl / 模块（运维参考，前端勿配置）
 
 完整清单：`deployments/bsc-56.json` / README。Portal 发币已拆为 **Launcher 簇**（`delegatecall`）；前端仍只调 **Portal proxy**。  
-**代理不变**；下列为 `UpgradeCosmOnlyEvents` 后的当前 impl / facet / clone 模板。
+**代理不变**；下列为 `UpgradeActualReceived` 后的当前 impl / facet / clone 模板。
 
 | 键 | 地址 | 说明 |
 |----|------|------|
 | `proxyAdmin` | `0x2A4C566C9Aeb733D3FcC10ad8c2A6BE1cd3A7746` | Transparent 代理管理员 |
-| `portalImpl` | `0x6182719cb38B3C45Cb9a5f3b7b5e9d304d8313D8` | CosmPortal 薄代理 impl |
-| `portalTrade` | `0xB624279Ba9Ae13Ff097E2D3032222f8f4364B2B8` | 买卖模块 |
-| `portalTradeDex` | `0xDb379688Baed20B06006b1F83Bc1A7d4b2d8d3ca` | DEX 路由辅助 |
-| `portalDexRouter` | `0xed1BBB2DF3921f0955B928403c43A0fD778aB802` | DEX Router facet |
-| `portalLaunch` | `0x211922D61e7C08792119786B0A3D1BdA50698AE5` | Launcher 总入口 |
-| `portalLaunchTwoStep` | `0xA77BE6ad7FeB5045Ef38bc247C0f7ff322Febc54` | Two-step（**仅 saleForge**） |
-| `portalLauncherV5` | `0x4Cd79D31e062e16A3C287513BE3B20f20bD531d9` | 内部 |
-| `portalLauncherV5Tax` | `0xf4D13A2ceF0f79DbaEb4B267Ece2053A242Fca54` | 内部 |
-| `portalLauncherV6` | `0x25528eb9aADcb1f21a1E9fE73c6817DfbB000425` | 内部 |
-| `portalLauncherV7` | `0x04201d097A7B499B923F2Ad8BAf3868D0Ac009ff` | 内部 |
-| `portalLauncherV7Tax` | `0x57c08a365ad0CdB827A539dCb04FBEb15A546fD1` | 内部 |
-| `portalMigrate` | `0xB14a5e8E4209e1B0F04E963aF09f6eF511a612ef` | 迁移模块 |
-| `portalLens` / `portalLensV2` | `0x9eE0Fe95…` / `0xa3089E99…` | 只读 lens |
+| `portalImpl` | `0xBB2eb5B95F79DCC1c73791c6d3EcC489CFd839dF` | CosmPortal 薄代理 impl |
+| `portalTrade` | `0x8750dC139c1C34B94F495DF169520169B33fA12A` | 买卖模块 |
+| `portalTradeDex` | `0x9b182A4CF2c99401d0beDe8fED7A767706ce48Fb` | DEX 路由辅助 |
+| `portalDexRouter` | `0x0788563697465A80dEF5df6E83d581bedBDc5d0D` | DEX Router facet |
+| `portalLaunch` | `0x10E9A1a03F3872D3B6074931FdDC9E3096EA224c` | Launcher 总入口 |
+| `portalLaunchTwoStep` | `0x8F4E98F88aabd7b19fae42392a6e420B389fcD1b` | Two-step（**仅 saleForge**） |
+| `portalLauncherV5` | `0xA541f03bFC1121b987CB5403AbE4067478a5a84b` | 内部 |
+| `portalLauncherV5Tax` | `0x3067f3305b9022b9C78dA8745494499F64CAB6E2` | 内部 |
+| `portalLauncherV6` | `0xDB9199c42CeD2F249793dE594109f595E5D8011a` | 内部 |
+| `portalLauncherV7` | `0xBD0fB1740B159d7e376878567A75AdFE5bcd9cc2` | 内部 |
+| `portalLauncherV7Tax` | `0x2d78c84E17B0FBeBaFb31F43c9460bE18a8d71D5` | 内部 |
+| `portalMigrate` | `0xd019dfECaAe8c50e1B5363329dA2850aB6fDd72a` | 迁移模块 |
+| `portalLens` / `portalLensV2` | `0x8E13854b4FD4165a31437587477b78681a543cb2` / `0x1B3226D7906E067abDb63146eFC960ef4474bfD3` | 只读 lens |
 | `vaultImpl` | `0x9304020651A5C122456F17B9bfe28CE00F99DDeE` | CosmVaultPortal impl |
-| `vaultLens` / `vaultLaunch` / `vaultTweak` | `0xB0b2c44E…` / `0x30B4C7c1…` / `0xCbBc82e1…` | VaultPortal 三模块 |
+| `vaultLens` / `vaultLaunch` / `vaultTweak` | `0xB0b2c44E2EB6c32C94F573AB671e747e062Bb921` / `0x30B4C7c1148B165e7483469a13dc3242C51bc5B1` / `0xCbBc82e1d25326c1D2901FF26d819AeC08656D2E` | VaultPortal 三模块 |
 | `triggerImpl` | `0xbDbDB658f5D5eFb15d079568e58EedE70F34FdCA` | CosmTriggerService impl |
-| `standardImpl` / `taxImpl` | `0x2793D7a0…` / `0xbf02cAF2…` | 新币 CREATE2 模板 |
-| `taxSplitterImpl` | `0x668F96983e17b5bE27f9eB9570fb25D14eC3Acf2` | 新税币 TaxSplitter 模板 |
-| `taxSplitterDispatchImpl` | `0xcf1abc2A21f77332B1f45eEAC7D63e478Bb18d5F` | Dispatch delegatecall 目标 |
-| `taxSplitterLiteImpl` | `0x60303CAc16Cbd2BA5BE726D7a74AFCDfA5d48CFa` | Lite 模板 |
-| `dividendImpl` | `0xbCA5686ab764eb809648a544eb1F70Ed239BFcE4` | 新币 Dividend 模板 |
+| `standardImpl` / `taxImpl` | `0x2793D7a010a15Dac3C72182e9dF0F93a0c427890` / `0xbf02cAF2Ca191146cB9DB3C0A707C10cf5839AA2` | 新币 CREATE2 模板 |
+| `taxSplitterImpl` | `0xcd484b40DF66a5d8B10038e527e32b9e10ed801E` | 新税币 TaxSplitter 模板 |
+| `taxSplitterDispatchImpl` | `0x8d175A553ff0c23F49E4c440679247F2f82ebbef` | Dispatch delegatecall 目标 |
+| `taxSplitterLiteImpl` | `0x8E0F44f457683D488d95F967685A2B60FaFC40eC` | Lite 模板 |
+| `dividendImpl` | `0x471309cD2D8F92E25DaC22b29bAFc6346790d721` | 新币 Dividend 模板 |
+| `migratorV2` | `0xFDC2Ef6D8547Fb5C6012F46A6Bf54BBe8D6FA5bA` | 税币 PancakeSwap V2 迁移器 |
+| `migratorV3` | `0xc04EDe0C68733D0d809d9A577cC1B87F1C3b354A` | 普通币 PancakeSwap V3 迁移器 |
+| `migratorInfinity` | `0x24cF11426999219c84cd637bD6fc268975AAD2B1` | 普通币 PancakeSwap Infinity 迁移器 |
+| `infinityHook` | `0x1686D917BeCd5bA6a2CB8ABE4A7b708955d7FeF9` | Infinity CL Hook（代理未换，迁移器已指向新实现） |
 | `defaultTaxConverter` | `0x3725B42BfDa1Ef33a7eEb8c0465675Ee72aa0001` | = `converterProxy` |
 
 > 已存在的 EIP-1167 clone（老税币 / 老 TaxSplitter / 老 Dividend）**仍跑旧 bytecode**（可能仍含历史 `Flap*` 事件）；**新发射**代币走上表模板。
