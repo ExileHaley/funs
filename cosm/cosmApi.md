@@ -62,7 +62,11 @@ Vanity salt 搜址：`Portal.standardTokenImpl()` / `Portal.taxTokenImpl()`（vi
 | LP Staking Dividend | `0xAec0EcFd308a24039aC299A7Fb8Da165EC405074` | `lp-staking-dividend` |
 | Token Staking Dividend | `0xf14a4Aa3D702af1416dF91e8372E7f9101F7c3a1` | `token-staking-dividend` |
 | Rank Burn Dividend | `0x9abC0D6516d4a023280EADaB82397b99521AB98f` | `rank-burn-dividend` |
-| Floor Burn | `0xda41EBD72a6c69FDdD047e061DCE5705Ba1Cea88` | `floor-burn` |
+| Floor Burn（剩余下限销毁） | `0x95334Bdad8ca7A2300CCEf0e7c8180803929d8Af` | `floor-burn` |
+
+> **`floor-burn` 当前官方工厂**仅上表地址。Beacon `0x0c6a9230932FbaD397301D2A5edd4aa1cF5011BA` · 金库实现 `0x7bCafF7d5C01038E3d3b21CE8e5614Fdf3099AA3`。  
+> 旧工厂 `0xda41EBD72a6c69FDdD047e061DCE5705Ba1Cea88` 已在金库门户禁用，**不要**再放进前端 / keeper 白名单。  
+> 新发射金库的剩余下限 = **PancakeSwap V2 交易对里的税代币余额**（落到 `remainingFloor ± 100` 枚），不是 `totalSupply − dead`。发币时常填 `remainingFloor = 5_000_000 ether`（交易对里留下约 500 万枚）。
 
 ### 链上 impl / 模块（运维参考，前端勿配置）
 
@@ -193,7 +197,7 @@ Schema 是链上 UI 元数据，**不参与签名**；业务校验在 `onBeforeL
 
 路径 B 入口：**推荐** `VaultPortal.newCosmTokenV6WithVault`（也可用 Flap 布局 `newTokenV6WithVault`）· quote **仅 BNB** · `mktBps > 0`。
 
-1. **展示玩法列表** — 硬编码 §金库工厂 七个地址，或读 `VaultPortal` 工厂注册事件。
+1. **展示玩法列表** — 硬编码 §金库工厂 七个地址（`floor-burn` **必须**用 `0x95334Bdad8ca7A2300CCEf0e7c8180803929d8Af`，勿用已禁用的旧工厂），或读 `VaultPortal` 工厂注册事件。
 2. **用户选中工厂** → `factory.vaultDataSchema()`  
    返回 `{ description, fields[], isArray }`；按 `fields` 顺序渲染控件（`isArray=true` 时支持动态增删行，如 split 收款人）。  
    **仅表单发现，不做业务校验。**
@@ -319,7 +323,7 @@ VaultPortal 自身还会在发币时检查：`mktBps > 0`、`mktBps + deflationB
 | `scheduled-buyback` | 触发/回购参数在工厂允许范围内 |
 | `burn-dividend` / `lp-staking-dividend` / `token-staking-dividend` | 空 `0x` |
 | `rank-burn-dividend` | 空 `0x` 或 `abi.encode(uint256 minBurnAmount)` |
-| `floor-burn` | `intervalMinutes≥1` 整数；`bnbPerBurn` 0.01–1 ether、最多三位小数；`remainingFloor≤1e9 ether`；`postCapRecipient≠0` |
+| `floor-burn` | `intervalMinutes≥1` 整数；`bnbPerBurn` 0.01–1 ether、最多三位小数；`remainingFloor` = **交易对里要留下的税代币数量**（18 位，上限 `1e9 ether`，发币时常填 `5_000_000 ether`）；`postCapRecipient≠0` |
 
 完整编码见 [§工厂地址与 vaultData](#工厂地址与-vaultdata)。
 
@@ -392,7 +396,7 @@ await splitter.write.dispatch();
 | `token-staking-dividend` | 空 | `stake` / `withdraw` / `claim` | 用户 |
 | `lp-staking-dividend` | 空 | 同 staking | 用户 |
 | `rank-burn-dividend` | `minBurnAmount`（可空） | `burn` / `claim` + Top10 | 用户 |
-| `floor-burn` | 间隔 / 每次 BNB / 剩余下限 / 达标收款地址 | 只读 `getStatus` / 倒计时 / `isFloorReached` | keeper → `TriggerService.trigger`；达标后税自动打出 |
+| `floor-burn` | 间隔 / 每次 BNB / **交易对剩余下限** / 达标收款地址 | 只读 `getStatus`（含 `pair` · `remainingUnburned`）/ 倒计时 / `isFloorReached` | keeper → `TriggerService.trigger`；达标后税自动打出 |
 
 完整 ABI 字段见 [§金库实例方法](#金库实例方法完整列表) · 结构体定义见 [§金库 UI Schema 类型](#金库-ui-schema-类型vaultdataschema--vaultuischema)。
 
@@ -1328,7 +1332,7 @@ python3 tools/find_vanity.py --predict --portal 0xb4B057dEFda3822786F998FC54Aa93
 | `lp-staking-dividend` | `0xAec0EcFd308a24039aC299A7Fb8Da165EC405074` | 空 `0x`（pair 发币时 CREATE2 预测，同 `CosmTaxToken.mainPool`） |
 | `token-staking-dividend` | `0xf14a4Aa3D702af1416dF91e8372E7f9101F7c3a1` | 空 `0x` |
 | `rank-burn-dividend` | `0x9abC0D6516d4a023280EADaB82397b99521AB98f` | `abi.encode(uint256 minBurnAmount)`；也可空=`0` |
-| `floor-burn` | `0xda41EBD72a6c69FDdD047e061DCE5705Ba1Cea88` | `abi.encode(intervalMinutes, bnbPerBurn, remainingFloor, postCapRecipient)` · 间隔整分钟 ≥1 · `bnbPerBurn` 0.01–1 ether、最多三位小数 · `remainingFloor≤1_000_000_000 ether` · 达标后税立刻打给 `postCapRecipient` |
+| `floor-burn` | `0x95334Bdad8ca7A2300CCEf0e7c8180803929d8Af` | `abi.encode(intervalMinutes, bnbPerBurn, remainingFloor, postCapRecipient)` · 间隔整分钟 ≥1 · `bnbPerBurn` 0.01–1 ether、最多三位小数 · `remainingFloor` = PancakeSwap V2 交易对里要留下的税代币数量（≤ `1_000_000_000 ether`；发币时常 `5_000_000 ether`）· 最后一笔允许落到 `remainingFloor ± 100 ether` · 达标后税立刻打给 `postCapRecipient` |
 
 ---
 
@@ -1351,7 +1355,7 @@ python3 tools/find_vanity.py --predict --portal 0xb4B057dEFda3822786F998FC54Aa93
 | `token-staking-dividend` | 质押税币领 BNB | `getStatus` · `getUserInfo` · `pendingReward` | `stake` · `withdraw` · `claim` | 用户（stake 前 approve 税币） |
 | `lp-staking-dividend` | 质押 LP 领 BNB | 同上 + `pair()` | `stake` · `withdraw` · `claim` | 用户（stake 前 approve **LP=`pair()`**） |
 | `rank-burn-dividend` | 烧币上榜领双池 | `getStatus` · `getUserInfo` · `topBurnersList` · `pendingRank` | `burn` · `claim` | 用户（approve 税币） |
-| `floor-burn` | 买到剩余下限再打指定地址 | `getStatus` · `canTrigger` · `countdownSeconds` · `isFloorReached` | 转 BNB 充值；**买/销毁由 keeper** | 用户只充值；keeper `TriggerService.trigger` |
+| `floor-burn` | 从交易对买到剩余下限再打指定地址 | `getStatus`（含 `pair`）· `canTrigger` · `countdownSeconds` · `isFloorReached` | 转 BNB 充值；**买/销毁由 keeper** | 用户只充值；keeper `TriggerService.trigger` |
 
 ### 1) `split` — 按 bps 分税
 
@@ -1430,13 +1434,13 @@ python3 tools/find_vanity.py --predict --portal 0xb4B057dEFda3822786F998FC54Aa93
 
 ### 7) `floor-burn` — 剩余下限销毁
 
-**用途：** 税/充值 BNB 按间隔、每次固定额度买本币打到 dead，直到未销毁剩余量落到 `remainingFloor` 的 ±3000 枚以内；之后进金库的税 BNB **立刻**打给发币时指定的 `postCapRecipient`。前端**不执行买/销毁**。Keeper 调用方式与 `scheduled-buyback` 相同：`CosmTriggerService.trigger(requestId)`。
+**用途：** 税/充值 BNB 按间隔、每次固定额度从 PancakeSwap V2 交易对买本币打到 `0x…dEaD`，直到**交易对里税代币余额**落到 `remainingFloor` 的 ±100 枚以内（发币时常设 `5_000_000 ether`，即交易对里留下约 500 万枚）；之后进金库的税 BNB **立刻**打给发币时指定的 `postCapRecipient`。剩余下限**不是** `totalSupply − dead`。前端**不执行买/销毁**。Keeper 调用方式与 `scheduled-buyback` 相同：`CosmTriggerService.trigger(requestId)`。
 
 | 类型 | 方法 | 用途 / 场景 |
 |------|------|-------------|
-| 读 | `getStatus()` | **首选**：倒计时、`ready`、未销毁剩余、是否达标、`pendingRequestId` |
-| 读 | `canTrigger()` / `countdownSeconds()` / `isFloorReached()` | 状态条 / 倒计时 / 是否已达剩余下限 |
-| 读 | `nextTriggerAt()` · `nextSpendBnb()` · `remainingUnburned()` · `pendingRequestId()` | 细节展示 |
+| 读 | `getStatus()` | **首选**：倒计时、`ready`、交易对地址 `pair`、交易对税代币剩余、是否达标、`pendingRequestId` |
+| 读 | `canTrigger()` / `countdownSeconds()` / `isFloorReached()` | 状态条 / 倒计时 / 交易对是否已达剩余下限 |
+| 读 | `nextTriggerAt()` · `nextSpendBnb()` · `remainingUnburned()` · `pair()` · `pendingRequestId()` | 细节展示；`remainingUnburned` = `balanceOf(pair)` |
 | 写 | 向 vault 转 BNB（`receive`） | 用户「手动充值」；未达标则预约下一轮；已达标则立刻打给指定地址 |
 | 写 | ~~`vault.trigger`~~ | **禁止前端直调**；仅 `TriggerService` 回调 |
 | Keeper | `TriggerService.trigger(requestId)` | 同 `scheduled-buyback`：`isRequestReady` 且 `getStatus().ready` |
@@ -1688,38 +1692,40 @@ const me = await vault.read.getUserInfo([userAddress]); // scheduled-buyback / f
 **Keeper：** 与 `scheduled-buyback` 同一套 `CosmTriggerService.trigger(requestId)`（`TRIGGER_ROLE`）。监听 `CosmTriggerRequested`，**`isRequestReady(id)` 且 `vault.getStatus().ready===true`** 时回调。  
 **注意：** 无直调 `vault.trigger()`；每次预约消耗 `getFee()` BNB（默认 **0.0002 BNB**）。达标后不再挂号，后续 `receive()` 立刻打给 `postCapRecipient`。
 
-未销毁剩余 = `totalSupply − dead − 零地址`。最后一笔允许落在 `remainingFloor ± 3000 ether` 以内。
+**剩余下限怎么算：** `remainingUnburned()` = PancakeSwap V2 交易对里的税代币余额 `IERC20(taxToken).balanceOf(pair)`，**不是** `totalSupply − dead − address(0)`。交易对优先 `token.mainPool()`，否则 `factory.getPair(taxToken, WBNB)`。最后一笔允许把交易对剩余落到 `remainingFloor ± 100 ether`（`FLOOR_TOLERANCE`）以内。`remainingFloor` 是发币时写入的目标（非常量），发币时常填 `5_000_000 ether`。迁移前交易对为空、或余额为 0 且从未买过时**不算达标**（避免税 BNB 过早打给 `postCapRecipient`），此时金库也不会挂号。
 
 #### 只读
 
 | 方法 | 返回 | 备注 |
 |------|------|------|
-| `getStatus()` | `FloorBurnStatus` | **首选** · 一次读齐页面 |
+| `getStatus()` | `FloorBurnStatus` | **首选** · 一次读齐页面（含 `pair`） |
 | `canTrigger()` | `bool` | 时间窗到且余额够一次销毁（未达标时） |
 | `countdownSeconds()` | `uint256` | 距下次时间窗；已到点为 0 |
-| `isFloorReached()` | `bool` | 未销毁剩余已在下限 ±3000 内（或已标记达标） |
-| `nextTriggerAt()` / `nextSpendBnb()` | `uint256` | 下次时间 / 下次花费（最后一笔可能按报价缩减） |
-| `remainingUnburned()` | `uint256` | `totalSupply − dead − 零地址` |
-| `intervalSeconds()` / `bnbPerBurn()` / `remainingFloor()` | `uint256` | 配置 |
+| `isFloorReached()` | `bool` | 交易对税代币余额已在下限 ±100 内（或已标记达标）；空池 / 从未买过不算达标 |
+| `nextTriggerAt()` / `nextSpendBnb()` | `uint256` | 下次时间 / 下次花费（最后一笔可能按报价缩减，使交易对剩余落入下限 ±100） |
+| `remainingUnburned()` | `uint256` | 交易对税代币余额 `balanceOf(pair)` |
+| `pair()` | `address` | 剩余下限所针对的 PancakeSwap V2 交易对 |
+| `intervalSeconds()` / `bnbPerBurn()` | `uint256` | 间隔 / 每次花费 |
+| `remainingFloor()` | `uint256` | 发币时目标：交易对里要留下的税代币数量（常 `5_000_000 ether`） |
 | `postCapRecipient()` | `address` | 达标后税 BNB 收款地址 |
 | `lastTriggeredAt()` | `uint256` | 上次触发 |
 | `totalBurned()` / `totalBnbSpent()` / `triggerCount()` | `uint256` | 累计销毁 / 花费 / 次数 |
 | `pendingRequestId()` | `uint256` | 当前 TriggerService 预约 ID；**0=无 pending** |
 | `floorReached()` | `bool` | 已标记达标（锁存） |
-| `triggerService()` / `router()` | `address` | 调度器 / PCS V2 Router |
-| `FLOOR_TOLERANCE()` | `uint256` | `3000 ether` |
+| `triggerService()` / `router()` | `address` | 调度器 / PancakeSwap V2 Router |
+| `FLOOR_TOLERANCE()` | `uint256` | `100 ether`（±100 枚，18 位） |
 | `MAX_REMAINING_FLOOR()` | `uint256` | `1_000_000_000 ether` |
 
-`FloorBurnStatus`：`intervalSeconds` · `bnbPerBurn` · `remainingFloor` · `postCapRecipient` · `lastTriggeredAt` · `nextTriggerAt` · `countdownSeconds` · `vaultBnb` · `nextSpendBnb` · `remainingUnburned` · `totalTokensBurned` · `totalBnbSpent` · `triggerCount` · `pendingRequestId` · `ready` · `floorReached`
+`FloorBurnStatus`：`intervalSeconds` · `bnbPerBurn` · `remainingFloor` · `postCapRecipient` · `lastTriggeredAt` · `nextTriggerAt` · `countdownSeconds` · `vaultBnb` · `nextSpendBnb` · `remainingUnburned` · `totalTokensBurned` · `totalBnbSpent` · `triggerCount` · `pendingRequestId` · `ready` · `floorReached` · `pair`
 
 #### 操作
 
 | 方法 | 调用方 | 前置 | 备注 |
 |------|--------|------|------|
-| `trigger(uint256 requestId)` | **`CosmTriggerService` 回调** | `canTrigger()==true` 时买并打 dead | 实现 `ITriggerReceiver`；达标则打给 `postCapRecipient` 且不再预约 |
+| `trigger(uint256 requestId)` | **`CosmTriggerService` 回调** | `canTrigger()==true` 时从交易对买本币打到 `0x…dEaD` | 实现 `ITriggerReceiver`；达标则打给 `postCapRecipient` 且不再预约 |
 | `receive()` / 转 BNB | 用户 / 税分 | — | 未达标：入账并预约；已达标：立刻打给指定地址 |
 
-事件：`Deposited` · `TriggerScheduled` · `FloorBurn` · `FloorReached` · `PostCapPayout`
+事件：`Deposited` · `TriggerScheduled` · `FloorBurn(bnbSpent, burnedAmount, remainingUnburned, …)`（`remainingUnburned` = 买完后交易对税代币余额）· `FloorReached(remainingUnburned)` · `PostCapPayout`
 
 ---
 
@@ -1809,7 +1815,7 @@ BSC **V6 税币**走 PCS V2 + `CosmTaxSplitter`（= Flap `TaxProcessorUniV2`）�
 
 ### scheduled-buyback / floor-burn（同一套 keeper）
 
-见下方 [§CosmTriggerService](#cosmtriggerservice-方法)：监听 **`CosmTriggerRequested`** → `TriggerService.trigger`（`TRIGGER_ROLE`）。与 TaxSplitter dispatch **无关**。`floor-burn` 达标后不再挂号。
+见下方 [§CosmTriggerService](#cosmtriggerservice-方法)：监听 **`CosmTriggerRequested`** → `TriggerService.trigger`（`TRIGGER_ROLE`）。与 TaxSplitter dispatch **无关**。`floor-burn` 用交易对税代币余额判断剩余下限（`getStatus().remainingUnburned` / `pair`）；落入 `remainingFloor ± 100 ether` 后不再挂号。工厂白名单只用 `0x95334Bdad8ca7A2300CCEf0e7c8180803929d8Af`。
 
 ---
 
@@ -1877,7 +1883,7 @@ if (ready && status.ready) {
 
 - 调 fee/gas：`script/ConfigureCosmTrigger.s.sol`（`TRIGGER_GAS_FEE` · `TRIGGER_MAX_CALLBACK_GAS`）
 - 仅换 scheduled 工厂：`script/DeployScheduledBuybackFactory.s.sol`（本次全量部署已含 TriggerService 集成版工厂，通常不必单独跑）
-- 新增 floor-burn 工厂：`script/DeployFloorBurnFactory.s.sol`（已部署并登记；工厂代理 `0xda41EBD72a6c69FDdD047e061DCE5705Ba1Cea88`）
+- **`floor-burn` 当前官方工厂** `0x95334Bdad8ca7A2300CCEf0e7c8180803929d8Af`（`deployments/bsc-56.json` 的 `floorBurnFactory`）。旧工厂 `0xda41EBD72a6c69FDdD047e061DCE5705Ba1Cea88` 已禁用，勿再白名单。历史替换脚本：`script/RedeployFloorBurnFactory.s.sol`
 
 ---
 
@@ -1939,6 +1945,8 @@ DEX 积税清算：卖到主池且达到 `liquidationThreshold`（无 token 侧 
 
 VaultPortal：`InvalidTaxAllocation` · `InvalidMktBps` · `InvalidFeeConfig` · 工厂 `onBeforeLaunch` 返回 `(false, reason)`。
 
+`floor-burn` 工厂 / 金库（发币 `vaultData` 或回调）：`bad interval` · `bad bnbPerBurn` · `bad recipient` · `floor exceeds supply`（`remainingFloor > 1_000_000_000 ether`）。
+
 ---
 
 ## 曲线买卖步骤
@@ -1990,6 +1998,8 @@ export const VAULT_FACTORY = {
   lpStakingDividend: "0xAec0EcFd308a24039aC299A7Fb8Da165EC405074",
   tokenStakingDividend: "0xf14a4Aa3D702af1416dF91e8372E7f9101F7c3a1",
   rankBurnDividend: "0x9abC0D6516d4a023280EADaB82397b99521AB98f",
-  floorBurn: "0xda41EBD72a6c69FDdD047e061DCE5705Ba1Cea88",
+  // 当前官方工厂。旧 0xda41EBD72a6c69FDdD047e061DCE5705Ba1Cea88 已禁用。
+  // remainingFloor = PancakeSwap V2 交易对里要留下的税代币数量（发币时常 5_000_000 ether）；FLOOR_TOLERANCE = 100 ether
+  floorBurn: "0x95334Bdad8ca7A2300CCEf0e7c8180803929d8Af",
 } as const;
 ```
