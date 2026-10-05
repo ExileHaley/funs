@@ -1,31 +1,3 @@
-## deploy 
-```shell
-forge script script/DeployMiningCardSystem.s.sol:DeployMiningCardSystemScript \
-  --rpc-url eniac
-```
-```shell
-forge script script/DeployMiningCardSystem.s.sol:DeployMiningCardSystemScript \
-  --rpc-url eniac \
-  --broadcast
-```
-
-## import
-```shell
-forge script script/ImportReferrals.s.sol:ImportReferralsScript \
-  --rpc-url eniac
-```
-```shell
-forge script script/ImportReferrals.s.sol:ImportReferralsScript \
-  --rpc-url eniac \
-  --broadcast
-```
-## verify
-```shell
-cast call 0xD034A38B783E17864fdD8940C24d39e1037939Fc \
-  "registeredUserCount()(uint256)" \
-  --rpc-url https://rpc.eniac.network
-```
-
 ### Mining NFT:0x8e723f48EC1c32eE9EE56D6A77bC2C9f9542B046
 ### Purchase NFT:0xD034A38B783E17864fdD8940C24d39e1037939Fc
 
