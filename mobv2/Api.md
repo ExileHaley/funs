@@ -827,3 +827,19 @@ function tokenCardTypes(uint256 tokenId) external view returns (NodeType cardTyp
 5. 组织卡和节点卡质押为永久锁定；矿机卡激活后同样由挖矿合约永久托管，出局后不返还NFT。
 6. MÖB卖出前若资格队列未同步，交易会回滚；此时先调用 `syncExpiredEligibility()`，直到待处理到期记录全部同步后再卖出。
 7. 付款预览使用调用时的Pair储备，只代表当前应付数量。发起购买时仍应按用户确认的容忍度设置`maxMob`或`maxNcn`，防止报价变化导致超额支付。
+## 计算卡牌以及质押代币静态收益步骤
+1. 购买矿机卡 NFT
+  ↓
+2. 授权 MiningSystem 操作 NFT 和 USDT
+  ↓
+3. Gateway.activateMiningCard(tokenId)
+  ↓
+4. MiningSystem 锁定 NFT、收取首期铸币费、创建 positionId
+  ↓
+5. Dashboard.getWorkingCards() 获取 positionId
+  ↓
+6. Dashboard.firstActivationAt(account) 计算 windowIndex
+  ↓
+7. Dashboard.getPositionWindowEarnings(positionId, windowIndex)
+  ↓
+8. 前端格式化并展示基础收益、加速收益、已消费收益、可用收益
