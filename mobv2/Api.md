@@ -15,9 +15,8 @@
 
 下列地址是加入 ReferralRegistry UUPS 代理之前的历史部署记录，不能用于当前源码。重新全量部署后，所有业务调用地址必须以新日志为准，并额外记录 `REFERRAL_REGISTRY_IMPLEMENTATION`；正式交付前应整体替换本节，不能只替换邀请合约地址。
 
-```text
-  USDX 0x8e723f48EC1c32eE9EE56D6A77bC2C9f9542B046
-  MOB_V2_GATEWAY_PROXY 0x6753Bf680823ABB0ACbD3E6c70F05D1283397FF2
+```
+MOB_V2_GATEWAY_PROXY 0x6753Bf680823ABB0ACbD3E6c70F05D1283397FF2
   INTERACTION_POOL 0xd6dCac29DA4c56bC1bd819d3ce0617043Afc9B95
   MOB 0xaADb78F6d8f7CA31f751fa90773dF6dFF4b0CAb9
   NCN 0x7C354848d2594Ea0dDF0937035A61e042A711c6F
@@ -387,7 +386,14 @@ struct TradingModeDiagnosis {
 function getUserOverview(address account)
     external view returns (UserOverview memory overview);
 
-// 返回MÖB卖出使用的累计NCN资格；字段定义见TradingRouter章节。
+// 查询该地址是否满足MÖB卖出前的累计NCN交易考核，以及当前还差多少USDT交易额。
+// 考核从首张真实矿机卡激活或首张虚拟卡导入时起算，按累计天数乘operator设置的每日X计算累计要求；
+// 天数包含首日，卡牌出局期间仍继续计时；修改X会追溯影响全部累计天数，历史买卖记录不清零。
+// 买入和卖出NCN都计入累计交易额，但买入必须严格大于累计要求的一半；卖出MÖB不会消费NCN交易记录。
+// qualified=true表示可通过NCN资格项，但实际卖MÖB仍需同时满足单笔工作卡卖出限额和剩余MÖB卖出额度。
+// missingTotalUsdt是总交易额缺口，missingBuyUsdt是严格超过总要求50%的买入缺口；补足一个缺口不代表另一个也已满足。
+// dailyRequirementUsdt=0时关闭NCN资格检查；exempt=true的豁免地址也直接通过，两个缺口均返回0。
+// 所有金额均为USDT最小单位；这是只读实时状态，不会锁定或消费额度。字段完整定义见TradingRouter章节。
 function getNcnSellQualification(address account)
     external view returns (NcnSellQualificationStatus memory status);
 
@@ -420,11 +426,15 @@ function getPositionAccelerationStatus(uint256 positionId)
         uint256 totalAccelerationMobStaked
     );
 
-// 返回指定单卡按秒静态收益和按当前Pair价格计算的MÖB预览。
-// maturedWithdrawalMob：当前正常提现毛MÖB；
-// immediateGross/Fee/NetMob：当前立即提现毛额、20%销毁费、预计实收；
-// compositionMob：当前全部未消费收益用于合成时的MÖB价值。
-// 所有MÖB结果是实时预览，交易前价格变化会导致实际值变化。
+// 查询指定矿机仓位positionId的基础卡牌收益及MÖB质押加速静态收益；每次只查一张卡。
+// status内的收益账本以USDT计价并按秒累计：produced为历史累计产出，consumed为历史已提现/合成消费；
+// availableMatured是当前正常提现可用余额，availableUnmatured是尚未成熟、可立即提现的余额。
+// maturedWithdrawalMob是成熟基础+加速收益按当前Pair价格折算的正常提现毛MÖB；正常提现不收20%费用。
+// immediateGrossMob仅包含未成熟的基础+加速收益折算毛MÖB；immediateFeeMob为其20%费用，
+// immediateNetMob=gross-fee，是按当前价格估算的立即提现到账MÖB。立即提现不会把已成熟部分重复计入。
+// compositionMob是该仓位当前全部未消费基础+加速收益折算的MÖB总值，包含成熟和未成熟部分，
+// 仅供合成预览，不等于可提现金额；实际合成还受目标卡面值和钱包补差规则影响。
+// 该接口只读，不会锁价或消费账本；返回值是当前估算，实际交易会按结算时价格计算。
 function getPositionEarnings(uint256 positionId)
     external view returns (
         EarningsStatus memory status,
@@ -517,7 +527,8 @@ function nodeFaceValue(NodeType nodeType) external view returns (uint256);
 // 返回节点类型固定供应上限。
 function nodeSupplyCap(NodeType nodeType) external pure returns (uint256);
 
-// 返回节点类型当前已铸造、上限和剩余数量；三个字段都是NFT张数。
+// 查询四类节点卡的累计发行量。购买、operator单张铸造和operator批量铸造均计入同一计数；
+// minted/cap/remaining分别是已发行张数、该类型固定发行上限和还可发行张数。
 function nodeSupplyStatus(NodeType nodeType)
     external view
     returns (uint256 minted, uint256 cap, uint256 remaining);
@@ -753,9 +764,10 @@ function positionConsumedTotals(uint256 positionId)
     external view
     returns (uint256 consumedBaseUsdt, uint256 consumedAccelerationUsdt);
 
-// 按矿机类型返回当前和历史数量。
-// workingTotal/exitedTotal：包含真实NFT和虚拟卡；
+// 查询五类矿机卡中指定类型的当前工作/质押中数量和累计出局数量；这是全局O(1)计数，不遍历卡牌。
+// workingTotal/exitedTotal：包含真实NFT和导入的虚拟卡；
 // workingNft/exitedNft：仅真实NFT；workingVirtual/exitedVirtual：仅虚拟卡。
+// 注意：这是MiningSystem直接查询，不经过UserDashboard；工作中即当前已激活且未出局。
 function miningCardTypeStats(MiningCardType cardType)
     external view
     returns (
