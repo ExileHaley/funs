@@ -16,42 +16,43 @@
 下列地址是加入 ReferralRegistry UUPS 代理之前的历史部署记录，不能用于当前源码。重新全量部署后，所有业务调用地址必须以新日志为准，并额外记录 `REFERRAL_REGISTRY_IMPLEMENTATION`；正式交付前应整体替换本节，不能只替换邀请合约地址。
 
 ```
-MOB_V2_GATEWAY_PROXY 0x6753Bf680823ABB0ACbD3E6c70F05D1283397FF2
-  INTERACTION_POOL 0xd6dCac29DA4c56bC1bd819d3ce0617043Afc9B95
-  MOB 0xaADb78F6d8f7CA31f751fa90773dF6dFF4b0CAb9
-  NCN 0x7C354848d2594Ea0dDF0937035A61e042A711c6F
-  PRICE_ORACLE 0x86869725c3eB770f1F55FCE0898B4C2D5425E19d
-  REFERRAL_REGISTRY 0x5FFBaFc5DFa6c6013093d7305151680230CEd5A7
-  CARD_MANAGER 0xb3A58237a878C6d06EE549FFE4b33a780FD3EC21
-  MINING_EARNINGS_SETTLEMENT 0x11BE4eCA649e5EAd1C611ba20576144AC21F3f58
-  MINING_EARNINGS_LEDGER 0xDb50e6aBD1C7827C19727093c1135882cc2B19E9
-  MINING_SYSTEM 0xd4BAD5B6Eb047ef839BC6957BCF724df65724e5C
-  CARD_COMPOSER 0xCBf8a929A3731782b46013bad988431492e669Ee
-  TRADING_ROUTER 0x64659372E88355cc22931c49bBA9fd22cC9c9010
-  USER_DASHBOARD 0x230EdFd1cC8C42EcB9a3a3e3B1C55Ff192914235
-  REWARD_DISTRIBUTOR 0x3D697FED9E2B5864fd97a3E8660b1903B644aC40
-  TEAM_PERFORMANCE 0xa641C44479Ad90F5032BB2c9479801B9410E583D
-  TEAM_ELIGIBILITY 0x68dEF13Bcc3044E065e97AEc640165f652e0eEe8
-  ORGANIZATION_BENEFIT 0xb06C2a8Fc41139B83C025cc6E64c0A800733bD65
-  NODE_REWARD_POOL 0xa537c53ad3E6Af07F3b3f1973C3e36CC45fDCFA6
-  MINING_CARD 0xd775D0DDCfBbf47850936B4D9dE269F79EE0bD58
-  ORGANIZATION_CARD 0x8b730bd9f2345C55aD8875f19b6941EC59B9D716
-  NODE_CARD 0x7A9CA6e77b7141D603119f691458869be64Ea5dB
-  MOB_V2_GATEWAY_IMPLEMENTATION 0x44879482E9070D4dE21D5B21bC64FA226BC52AFf
-  INTERACTION_POOL_IMPLEMENTATION 0x50d6121eBBcf162CA83408Ac47fF214004f16d33
-  CARD_MANAGER_IMPLEMENTATION 0xd1A05F4A1D130405e6448aa60d0261f83C399BA4
-  ORGANIZATION_BENEFIT_IMPLEMENTATION 0x3cDeebF14694809BeA5f5C9f4168D9E53b088EF9
-  NODE_REWARD_POOL_IMPLEMENTATION 0x824B99142f98B8134466DEf4a285394f687f8A64
-  REWARD_DISTRIBUTOR_IMPLEMENTATION 0x34d94cE5f47D20FE002DAfDFAF1C4619C9e72D1e
-  TEAM_PERFORMANCE_IMPLEMENTATION 0x50fF879035e1e0eA46a70315D69368e26153792F
-  TEAM_ELIGIBILITY_IMPLEMENTATION 0xE894db7b40D9D7D1DDb818920A3eCc71288FEb46
-  MINING_EARNINGS_SETTLEMENT_IMPLEMENTATION 0x1837D7D05D2aA65f06b75B646b518d4c6c5bCec5
-  MINING_EARNINGS_LEDGER_IMPLEMENTATION 0x49C1AD00ef9cf01cdC79d321e1Bc9eC1Ae8dcB98
-  MINING_SYSTEM_IMPLEMENTATION 0xa2BEf3572F0e6A58Ca67b2FC81D4256b1ABe0937
-  CARD_COMPOSER_IMPLEMENTATION 0xdfcBC4EBC8341159075DEe210F4D3F355D6b669e
-  TRADING_ROUTER_IMPLEMENTATION 0x9a7ffD818560848F807D7c13bBCB4E40Cadb86A3
-  USER_DASHBOARD_IMPLEMENTATION 0x5615F6FB6b4B95C46D1Ec17DA20C5e07Df086c0f
-  REFERRAL_REGISTRY_IMPLEMENTATION 0x1520457492eBB492D54010A3B7B6b05261C4BA84
+MOB_V2_GATEWAY_PROXY 0x7362153298FADFAC654C85471B13A7498f086938
+  INTERACTION_POOL 0xa7099828C7957ceE83fe4066f787757b5Bb6DA02
+  MOB 0xd04Ca5FA8553Aa0724774eAb54D6e2FB23Ef45B0
+  MOB_PAIR 0xD6Fc9E3e17b0f23Cf6AcB1D19e7F510fE33b8f30
+  NCN 0xBE51fd45b2102b6C2d25ECDA48473cA0D92E65b9
+  PRICE_ORACLE 0x65965656694595d63fe20fA9Ae90A17C62c8DD21
+  REFERRAL_REGISTRY 0xD3CF046Ce9184591Ec7b96Ece655F7E454331f9E
+  CARD_MANAGER 0x2A72aC4b81332C8453421D0b3D96aD1dDfe10b54
+  MINING_EARNINGS_SETTLEMENT 0x06f47592142751433Cc39D6F03b2be5c442b1971
+  MINING_EARNINGS_LEDGER 0xe7D86111D2D4522D6bA44F31d1B721fb604fbc2d
+  MINING_SYSTEM 0x1AAb974E7a847CA929c26baA7d5759b6190F41aA
+  CARD_COMPOSER 0xC096b46e01F1522eb32B0657e9ea780213684b02
+  TRADING_ROUTER 0x7C9cb9f4Bbd8e9a93AA83d7DbfF57325Df8d8822
+  USER_DASHBOARD 0xb8E2F4Db481F5316c8Fb868091732F5434CBdCBE
+  REWARD_DISTRIBUTOR 0x3D24a1fFf67d128bBb75fdc3476Aa5e145F0e5CB
+  TEAM_PERFORMANCE 0x9f0cF20a410AB6332B3Aa12d9255150AA7A7e0e6
+  TEAM_ELIGIBILITY 0x6b24dc09432F8987A2309aB333994b50388C7C46
+  ORGANIZATION_BENEFIT 0x12454ce8F9F99F4770875f1A6cb6860d300232eC
+  NODE_REWARD_POOL 0x49df61dE8178AaC7cdbFd324B742e924AE266F97
+  MINING_CARD 0x175AA25cf5c6dcBfa0E4839b9F3524D98EB2FD86
+  ORGANIZATION_CARD 0x0726Ea67bCeD1Ed3F14D9b52C401bE38742DC1e2
+  NODE_CARD 0xD346f31d56457bA7aCbb983D57881Fe68cF58051
+  MOB_V2_GATEWAY_IMPLEMENTATION 0xa87D1F6C8fFb830460c23487612Ae0fdF22dC07F
+  INTERACTION_POOL_IMPLEMENTATION 0x033739955777D29BBe7f0E758F9B6BAB77308Df3
+  CARD_MANAGER_IMPLEMENTATION 0x48ad81C000793A8Cbac8f2eC76eeB80eB241c717
+  ORGANIZATION_BENEFIT_IMPLEMENTATION 0xA2fC4e7D3031b299Bef61EC6cf3e57c098832AA1
+  NODE_REWARD_POOL_IMPLEMENTATION 0x69dfB816e8095BCDD1683EaB10810C6100e0894C
+  REWARD_DISTRIBUTOR_IMPLEMENTATION 0xD402fd6A3231d1d5f497420bdf471688D606f6CA
+  TEAM_PERFORMANCE_IMPLEMENTATION 0x085eE2F12db22EC2A32F4C049D8e3e781FCcbbBf
+  TEAM_ELIGIBILITY_IMPLEMENTATION 0xE35D2b3aE3CE251f8Dd5095e0844b3A94fb63D45
+  MINING_EARNINGS_SETTLEMENT_IMPLEMENTATION 0xb7502064FE1f56B4DeaBb414Ff842C1791468414
+  MINING_EARNINGS_LEDGER_IMPLEMENTATION 0x73Cc267720E90D4553434327B5E1C79466938bFa
+  MINING_SYSTEM_IMPLEMENTATION 0x7417f12d0791F6E89CD5bc9bCeD01DA44eB41043
+  CARD_COMPOSER_IMPLEMENTATION 0x69E61d2646Af86d00f0273553966d9E172d659DB
+  TRADING_ROUTER_IMPLEMENTATION 0x84C49C3B9EF9797F549EcfAB794892819Fe3E3E4
+  USER_DASHBOARD_IMPLEMENTATION 0x817F16Fa8B25915B0210EEA2Cb5449A99c416C6E
+  REFERRAL_REGISTRY_IMPLEMENTATION 0x95db5d651b129B999059a6fe130f344f1563EaF0
 ```
 
 ## 3. 枚举
@@ -292,7 +293,7 @@ struct UserOverview {
     uint256 cumulativeMobReceived;          // 历史经批准奖励合约实际支付的MÖB，是卖出额度来源
     uint256 cumulativeMobSold;              // 历史成功通过TradingRouter卖出的MÖB
     uint256 remainingMobSellAllowance;      // 当前剩余可卖MÖB=cumulativeMobReceived-cumulativeMobSold
-    uint256 workingMobSellLimitUsdt;        // 当前所有工作卡累计的一笔MÖB卖出毛USDT上限
+    uint256 workingMobSellLimitUsdt;        // 已激活或曾激活最高面值卡牌对应的一笔MÖB卖出毛USDT上限，不随出局降低
 }
 
 struct DynamicRewardTotals {
@@ -300,7 +301,7 @@ struct DynamicRewardTotals {
     uint256 levelMob;     // 历史记账层级MÖB，不是当前待领
     uint256 teamMob;      // 历史记账团队MÖB，不是当前待领
     uint256 teamUsdt;     // 历史记账铸币费团队USDT，不是当前待领
-    uint256 gradeSaleUsdt;// 历史记账V3/V4卖出手续费USDT，不是当前待领
+    uint256 gradeSaleUsdt;// 兼容字段；V3/V4卖出手续费不再写入动态收益记录，当前返回0
 }
 
 // 简单例子：A邀请B、B邀请C；B累计支付90U铸币费，C累计支付100U。
@@ -445,9 +446,16 @@ function getPositionEarnings(uint256 positionId)
         uint256 compositionMob
     );
 
-// 返回五类动态奖励的历史记账总额，不是当前待领。
+// 返回动态奖励的历史记账总额，不是当前待领。
+// V3/V4卖出手续费不再写入动态收益记录，gradeSaleUsdt保持为0。
 function getDynamicRewardTotals(address account)
     external view returns (DynamicRewardTotals memory totals);
+
+// 返回当前地址可领取的V3/V4卖出手续费USDT合计。
+// 地址只能处于一个有效等级；非V3/V4地址返回0。
+// 返回值包含已结算待领金额和当前累计索引计算出的未结算金额，不修改链上状态。
+function getGradeSalePendingUsdt(address account)
+    external view returns (uint256 amount);
 
 // 分页读取当前工作卡FIFO。cursorPositionId=0从头开始；nextCursor=0表示结束。
 // limit必须为1-100。
@@ -615,7 +623,7 @@ struct MobSellPreview {
     uint256 grossUsdt;              // 扣手续费前预计毛USDT
     uint256 feeUsdt;                // 按当前所有条件预计扣除的USDT手续费
     uint256 receivedUsdt;           // 预计用户实收USDT=grossUsdt-feeUsdt
-    uint256 workingSellLimitUsdt;   // 当前工作卡合计的一笔毛USDT卖出上限
+    uint256 workingSellLimitUsdt;   // 已激活或曾激活最高面值卡牌对应的一笔毛USDT卖出上限，不随出局降低
     uint256 cumulativeMobReceived;  // 历史实际领取并计入卖出额度的MÖB总量，不含转入或购买所得
     uint256 cumulativeMobSold;      // 历史通过TradingRouter成功卖出的MÖB总量
     uint256 remainingMobAllowance;  // 当前奖励来源剩余可卖MÖB数量
@@ -813,6 +821,8 @@ function accountPositionCount(address account) external view returns (uint256);
 function accountPositionIds(address account, uint256 index) external view returns (uint256);
 function workingFaceValueUsdt(address account) external view returns (uint256);
 function workingSellLimitUsdt(address account) external view returns (uint256);
+// 返回已激活或曾激活最高面值卡牌对应的单笔毛USDT卖出上限；多卡不累加，出局后仍保留。
+function maxActivatedSellLimitUsdt(address account) external view returns (uint256);
 function maxActiveUntil(address account) external view returns (uint256);
 function earningsLedger() external view returns (address);
 function accelerationClosedAt() external view returns (uint64);
@@ -1196,7 +1206,8 @@ function eligibilityOf(address account)
 
 ### PriceOracle
 
-所有报价都使用当前Uniswap V2 Pair储备，属于即时现货预览，不包含TradingRouter的MÖB卖出手续费。
+`quoteMobToUsdt`/`quoteUsdtToMob`使用Uniswap V2标准输出公式，包含0.3%手续费和输入数量造成的价格影响，供真实swap及MÖB卖出路径使用。
+`quoteMobToUsdtSpot`/`quoteUsdtToMobSpot`只按当前Pair储备比换算，不包含手续费和价格冲击，供内部估值、非真实swap兑换及添加流动性配比使用。
 
 ```solidity
 // MÖB数量换算为USDT计价值。
@@ -1204,6 +1215,12 @@ function quoteMobToUsdt(uint256 mobAmount) external view returns (uint256 usdtAm
 
 // USDT计价值换算为MÖB数量。
 function quoteUsdtToMob(uint256 usdtAmount) external view returns (uint256 mobAmount);
+
+// 仅按当前MÖB/USDT Pair储备比计算MÖB对应USDT，不包含0.3%手续费和价格冲击。
+function quoteMobToUsdtSpot(uint256 mobAmount) external view returns (uint256 usdtAmount);
+
+// 仅按当前MÖB/USDT Pair储备比计算USDT对应MÖB，不包含0.3%手续费和价格冲击。
+function quoteUsdtToMobSpot(uint256 usdtAmount) external view returns (uint256 mobAmount);
 
 // NCN数量换算为USDT计价值。
 function quoteNcnToUsdt(uint256 ncnAmount) external view returns (uint256 usdtAmount);
@@ -1276,7 +1293,12 @@ function transferFrom(address from, address to, uint256 tokenId) external;
 function safeTransferFrom(address from, address to, uint256 tokenId) external;
 ```
 
-矿机卡额外规则：普通钱包转移时，接收人必须在发送人伞下最多15层内；MiningSystem激活转入是唯一系统放行路径。组织卡和节点卡不受该邀请链转移限制，但质押后永久锁定。
+三类卡牌的转账规则一致：铸造到用户钱包不检查邀请链；普通钱包之间转移时，接收人必须在发送人伞下最多15层内，禁止转给上级、旁系或伞下之外地址。MiningCard进入MiningSystem、OrganizationCard进入OrganizationBenefit、NodeCard进入NodeRewardPool分别是唯一的系统质押/激活放行路径；三类卡牌进入对应系统后均永久锁定。
+
+// 以下配置方法仅由部署owner调用一次，配置后不可重复配置。
+function configureTransferRules(address referrals, address miningSystem) external;
+function configureTransferRules(address referrals, address organizationBenefit) external;
+function configureTransferRules(address referrals, address nodeRewardPool) external;
 
 ## 5. 前端调用顺序建议
 
@@ -1289,3 +1311,7 @@ function safeTransferFrom(address from, address to, uint256 tokenId) external;
 7. 动态、组织、节点的“当前待领”和“历史累计”必须分开展示，不能相加后标为余额。
 8. `subtreeMintFeePaidUsdt` 是伞下历史完整支付总额，不是交互池流入额、本人支付额或可领取奖励。
 9. owner/operator配置应放在独立管理页面，并在发送交易前校验当前调用钱包等于对应合约 `owner()` 或 `operator()`。
+
+## 6. 备注
+1. 读一下INTERACTION_POOL合约里面的usdt数量展示到管理端
+2. 读一下mob/usdt pair池子中usdt的数量展示到管理端
