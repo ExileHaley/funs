@@ -13,46 +13,48 @@
 
 ## 2. 部署地址
 
-下列地址是加入 ReferralRegistry UUPS 代理之前的历史部署记录，不能用于当前源码。重新全量部署后，所有业务调用地址必须以新日志为准，并额外记录 `REFERRAL_REGISTRY_IMPLEMENTATION`；正式交付前应整体替换本节，不能只替换邀请合约地址。
+下列地址是加入 ReferralRegistry 与 TradingModeController 独立UUPS代理之前的历史部署记录，不能用于当前源码。重新全量部署后，所有业务调用地址必须以新日志为准，并完整记录两个新增代理及implementation；正式交付前应整体替换本节，不能局部沿用历史地址。
 
 ```
-MOB_V2_GATEWAY_PROXY 0x7362153298FADFAC654C85471B13A7498f086938
-  INTERACTION_POOL 0xa7099828C7957ceE83fe4066f787757b5Bb6DA02
-  MOB 0xd04Ca5FA8553Aa0724774eAb54D6e2FB23Ef45B0
-  MOB_PAIR 0xD6Fc9E3e17b0f23Cf6AcB1D19e7F510fE33b8f30
-  NCN 0xBE51fd45b2102b6C2d25ECDA48473cA0D92E65b9
-  PRICE_ORACLE 0x65965656694595d63fe20fA9Ae90A17C62c8DD21
-  REFERRAL_REGISTRY 0xD3CF046Ce9184591Ec7b96Ece655F7E454331f9E
-  CARD_MANAGER 0x2A72aC4b81332C8453421D0b3D96aD1dDfe10b54
-  MINING_EARNINGS_SETTLEMENT 0x06f47592142751433Cc39D6F03b2be5c442b1971
-  MINING_EARNINGS_LEDGER 0xe7D86111D2D4522D6bA44F31d1B721fb604fbc2d
-  MINING_SYSTEM 0x1AAb974E7a847CA929c26baA7d5759b6190F41aA
-  CARD_COMPOSER 0xC096b46e01F1522eb32B0657e9ea780213684b02
-  TRADING_ROUTER 0x7C9cb9f4Bbd8e9a93AA83d7DbfF57325Df8d8822
-  USER_DASHBOARD 0xb8E2F4Db481F5316c8Fb868091732F5434CBdCBE
-  REWARD_DISTRIBUTOR 0x3D24a1fFf67d128bBb75fdc3476Aa5e145F0e5CB
-  TEAM_PERFORMANCE 0x9f0cF20a410AB6332B3Aa12d9255150AA7A7e0e6
-  TEAM_ELIGIBILITY 0x6b24dc09432F8987A2309aB333994b50388C7C46
-  ORGANIZATION_BENEFIT 0x12454ce8F9F99F4770875f1A6cb6860d300232eC
-  NODE_REWARD_POOL 0x49df61dE8178AaC7cdbFd324B742e924AE266F97
-  MINING_CARD 0x175AA25cf5c6dcBfa0E4839b9F3524D98EB2FD86
-  ORGANIZATION_CARD 0x0726Ea67bCeD1Ed3F14D9b52C401bE38742DC1e2
-  NODE_CARD 0xD346f31d56457bA7aCbb983D57881Fe68cF58051
-  MOB_V2_GATEWAY_IMPLEMENTATION 0xa87D1F6C8fFb830460c23487612Ae0fdF22dC07F
-  INTERACTION_POOL_IMPLEMENTATION 0x033739955777D29BBe7f0E758F9B6BAB77308Df3
-  CARD_MANAGER_IMPLEMENTATION 0x48ad81C000793A8Cbac8f2eC76eeB80eB241c717
-  ORGANIZATION_BENEFIT_IMPLEMENTATION 0xA2fC4e7D3031b299Bef61EC6cf3e57c098832AA1
-  NODE_REWARD_POOL_IMPLEMENTATION 0x69dfB816e8095BCDD1683EaB10810C6100e0894C
-  REWARD_DISTRIBUTOR_IMPLEMENTATION 0xD402fd6A3231d1d5f497420bdf471688D606f6CA
-  TEAM_PERFORMANCE_IMPLEMENTATION 0x085eE2F12db22EC2A32F4C049D8e3e781FCcbbBf
-  TEAM_ELIGIBILITY_IMPLEMENTATION 0xE35D2b3aE3CE251f8Dd5095e0844b3A94fb63D45
-  MINING_EARNINGS_SETTLEMENT_IMPLEMENTATION 0xb7502064FE1f56B4DeaBb414Ff842C1791468414
-  MINING_EARNINGS_LEDGER_IMPLEMENTATION 0x73Cc267720E90D4553434327B5E1C79466938bFa
-  MINING_SYSTEM_IMPLEMENTATION 0x7417f12d0791F6E89CD5bc9bCeD01DA44eB41043
-  CARD_COMPOSER_IMPLEMENTATION 0x69E61d2646Af86d00f0273553966d9E172d659DB
-  TRADING_ROUTER_IMPLEMENTATION 0x84C49C3B9EF9797F549EcfAB794892819Fe3E3E4
-  USER_DASHBOARD_IMPLEMENTATION 0x817F16Fa8B25915B0210EEA2Cb5449A99c416C6E
-  REFERRAL_REGISTRY_IMPLEMENTATION 0x95db5d651b129B999059a6fe130f344f1563EaF0
+  MOB_V2_GATEWAY_PROXY 0x15117EBa9A4d29Acd4eafEE7DE50B36E30A911fA
+  INTERACTION_POOL 0x66f3a8F6d7b5cBE1221D063e734727B5Ca943D89
+  MOB 0x82361Ef05977b6B02edCF2D92B49F1fDFA48a937
+  MOB_PAIR 0x6F570234447965CcD9caA8759758e00770034686
+  NCN 0x29E528b28AF84aF0fA327118568954737F47Ed82
+  PRICE_ORACLE 0x8640dFc1b3B38d8248E0314f55C32Ce3Eb2639d3
+  REFERRAL_REGISTRY 0x395f00c6a9a58e44fbde882320508E1109f43091
+  CARD_MANAGER 0x2B0d028F90AE291f0E3352540D561fae64ED1624
+  MINING_EARNINGS_SETTLEMENT 0x02369148029ecD72e215b8AF89f271929ed9Ca10
+  MINING_EARNINGS_LEDGER 0x350750b3C73483D1FE68a0E918C164ad465e1a84
+  MINING_SYSTEM 0x19C00aAbef05348EeD5274580DBf2a4EA61846e8
+  CARD_COMPOSER 0x5e6fe484950752E9C02Cf3a26C85F67b8eeC1164
+  TRADING_ROUTER 0xAaC2257b6a2683a3115e3b55e4d14162121Da3C6
+  TRADING_MODE_CONTROLLER 0x71EDF37Bcd693A9d8DF29e5518960Ef9475CF0AB
+  USER_DASHBOARD 0x1fd4183B7a02B4Dd28c3d1B33760E06335D75138
+  REWARD_DISTRIBUTOR 0x0d2eeCf09F1c2c2CBd75CB019f0A069C2F5BBdE0
+  TEAM_PERFORMANCE 0xfa3f5a7aba53cEc82387b3b0B6881438275d4ECF
+  TEAM_ELIGIBILITY 0xDb14612f92843BAFd138f65F9852Ba3dd8e3c596
+  ORGANIZATION_BENEFIT 0x014BCe51f2cBB2d3f3D744E672f297273e96114c
+  NODE_REWARD_POOL 0xfEc36fFea82763d2eCf0B979dDbfB0B81B50e13C
+  MINING_CARD 0xD02c7F572968078B7E35700f48E02194b1a273fc
+  ORGANIZATION_CARD 0x019e6668c7e00Bf518b7F2736A6E930b07858910
+  NODE_CARD 0xDc73B5b4c63793B734DA0877EC069CD316fD11AC
+  MOB_V2_GATEWAY_IMPLEMENTATION 0xe22b8d2afE1CFe6790d70c0011d7434c207f0AbC
+  INTERACTION_POOL_IMPLEMENTATION 0xFE6a691e9daa82597BeE4b397899a7079C9DbB23
+  CARD_MANAGER_IMPLEMENTATION 0x75b49A385cd670f532A43cC642b56518F6475D92
+  ORGANIZATION_BENEFIT_IMPLEMENTATION 0xD172F1E42ecC844248270625DF64938bb436D7f9
+  NODE_REWARD_POOL_IMPLEMENTATION 0x219186aB11cDEca444ae1a690Ea00115Cb3EE351
+  REWARD_DISTRIBUTOR_IMPLEMENTATION 0xa0FcFA8d48d805e34E4B2101CD0d0eE24e26662E
+  TEAM_PERFORMANCE_IMPLEMENTATION 0xAB6dB906339E27e7823acc8b5D929E57348BEC7c
+  TEAM_ELIGIBILITY_IMPLEMENTATION 0x39698900c624378De79005f37dc4A33f4a64EF29
+  MINING_EARNINGS_SETTLEMENT_IMPLEMENTATION 0x5FbcbF836790BE6E5C48389E941dBfEdC54Dd164
+  MINING_EARNINGS_LEDGER_IMPLEMENTATION 0x85B74CDef05F8bfe84D6aFBBd7da2222c4390e24
+  MINING_SYSTEM_IMPLEMENTATION 0x8c734856F24b45155e301D043Aa72A0dCc62f0a5
+  CARD_COMPOSER_IMPLEMENTATION 0xf4d3611a8EC19f2716D8d04F95AD269D25D6665C
+  TRADING_ROUTER_IMPLEMENTATION 0x358D873B92df30181e2E78f63cEAfdf39CAFd8b0
+  USER_DASHBOARD_IMPLEMENTATION 0x6964a07B6c9F1fBB83fe8D268FE4e0ACD9F77931
+  REFERRAL_REGISTRY_IMPLEMENTATION 0xD7102F360becF1Df9b1E8C1C27744D240bdD31C3
+  TRADING_MODE_CONTROLLER_IMPLEMENTATION 0x6Dc8fD0dFD2ebeA168cB418FBC4ebe4e66E308Fc
 ```
 
 ## 3. 枚举
@@ -359,7 +361,7 @@ struct RewardRecord {
 }
 
 struct TradingModeDiagnosis {
-    TradingModeStatus status;                    // TradingRouter原始模式状态；字段定义见TradingRouter章节
+    TradingModeStatus status;                    // TradingModeController原始模式状态；字段定义见TradingModeController章节
     uint256 switchedAt;                          // 最近一次模式切换时间，Unix秒；从未切换为0
     uint256 dailyOutflowBps;                     // 单日毛流出切出阈值，基点；operator通过setFlowSwitchThresholds设置
     uint256 sevenDayNetOutflowBps;               // 七日净流出切出阈值，基点；operator通过setFlowSwitchThresholds设置
@@ -377,7 +379,7 @@ struct TradingModeDiagnosis {
     uint256 missingRecoveryPriceUsdt;            // 当前MÖB价格距恢复目标尚缺多少USDT计价值；0表示已满足价格部分
     uint256 priceDropMaximumUsdt;                // 价格下跌回切允许的最高MÖB价格；当前价小于等于它即满足
     uint256 excessPriceAboveDropTargetUsdt;      // 当前价仍高于下跌目标多少；0表示已满足下跌条件
-    bool usesPoolBalanceRecoveryRatio;           // 当前切入原因是否使用余额恢复倍数；Pair模式下始终为true
+    bool usesPoolBalanceRecoveryRatio;           // 当前切入原因是否使用余额恢复倍数；仅PoolRatio原因的Pair模式为true
     bool usesPairOutflowRecoveryMultiple;        // 当前切入原因是否使用Pair流出倍数；仅流量原因Pair模式为true
     bool usesPriceRecoveryRatio;                 // 当前切入原因是否使用价格恢复比例；仅流量原因Pair模式为true
     bool usesPriceDropRecoveryRatio;             // 当前切入原因是否使用价格下跌比例；仅流量原因Pair模式为true
@@ -400,7 +402,7 @@ function getNcnSellQualification(address account)
 
 // 一次返回当前模式为何切换、切换基数、七项operator配置、所有回切目标和当前差额。
 // activeReason=PoolRatio时只看usesPoolBalanceRecoveryRatio对应的余额恢复路径。
-// activeReason=DailyOutflow或SevenDayNetOutflow时，四个uses字段对应的路径任一满足即可回切。
+// activeReason=DailyOutflow或SevenDayNetOutflow时，仅Pair流出倍数、价格恢复、价格下跌三个uses字段为true，三条路径任一满足即可回切；3倍余额路径不适用。
 // 非Pair模式时四个uses字段均为false；此接口只读，不会主动执行模式切换。
 function getTradingModeDiagnosis()
     external view returns (TradingModeDiagnosis memory diagnosis);
@@ -429,7 +431,8 @@ function getPositionAccelerationStatus(uint256 positionId)
 
 // 查询指定矿机仓位positionId的基础卡牌收益及MÖB质押加速静态收益；每次只查一张卡。
 // status内的收益账本以USDT计价并按秒累计：produced为历史累计产出，consumed为历史已提现/合成消费；
-// availableMatured是当前正常提现可用余额，availableUnmatured是尚未成熟、可立即提现的余额。
+// availableMatured/availableUnmatured是完整账本未消费值，不按剩余出局额度裁剪。
+// 下方五个MÖB操作预览与真实执行一致，按exitCapUsdt-exitUsedUsdt剩余额度裁剪；已出局时全部为0。
 // maturedWithdrawalMob是成熟基础+加速收益按当前Pair价格折算的正常提现毛MÖB；正常提现不收20%费用。
 // immediateGrossMob仅包含未成熟的基础+加速收益折算毛MÖB；immediateFeeMob为其20%费用，
 // immediateNetMob=gross-fee，是按当前价格估算的立即提现到账MÖB。立即提现不会把已成熟部分重复计入。
@@ -452,8 +455,9 @@ function getDynamicRewardTotals(address account)
     external view returns (DynamicRewardTotals memory totals);
 
 // 返回当前地址可领取的V3/V4卖出手续费USDT合计。
-// 地址只能处于一个有效等级；非V3/V4地址返回0。
-// 返回值包含已结算待领金额和当前累计索引计算出的未结算金额，不修改链上状态。
+// 地址同一时刻只能处于一个有效等级，但降级、到期或V3/V4切换不会丢失已结算待领金额。
+// 返回值=过往等级已结算未领取+当前V3/V4累计索引未结算金额；claim成功后清零。
+// 从未产生且当前也不是V3/V4的地址返回0；该方法不修改链上状态。
 function getGradeSalePendingUsdt(address account)
     external view returns (uint256 amount);
 
@@ -477,6 +481,12 @@ function getDirectReferrals(address account, uint256 offset, uint256 limit)
 // 分页读取动态奖励记账明细。limit必须为1-100。
 function getDynamicRewardRecords(address account, uint256 offset, uint256 limit)
     external view returns (RewardRecord[] memory records, uint256 nextOffset);
+
+// 分页读取OrganizationBenefit现有组织卡USDT收益明细，不新增或修改收益账本。
+// 每条记录包含支付铸币费的下级地址、记入的USDT数量、组织卡类型和记账时间；字段见OrganizationBenefit章节。
+// limit必须为1-100；nextOffset等于记录总数时表示已经读取完毕。
+function getOrganizationRewardRecords(address account, uint256 offset, uint256 limit)
+    external view returns (OrganizationRewardRecord[] memory records, uint256 nextOffset);
 ```
 ---
 
@@ -631,6 +641,13 @@ struct MobSellPreview {
     bool passesMobAllowance;        // 本次mobAmount是否不超过剩余MÖB额度
     bool ncnQualified;              // 当前NCN累计资格是否满足
 }
+```
+
+### TradingModeController
+
+该合约是独立UUPS代理，保存全部交易模式状态。前端、operator、keeper、Gateway、InteractionPool和TradingRouter都必须连接代理地址，不能连接implementation。
+
+```solidity
 
 struct TradingModeStatus {
     bool pairMode;                         // 当前是否为Pair模式
@@ -661,10 +678,55 @@ struct TradingModeStatus {
     bool pairOutflowMultipleMet;             // Pair流出达到operator倍数
     bool priceDropRecoveryMet;               // 价格下跌达到operator比例
     bool poolRatioExitMet;                   // 当前满足进入Pair模式的余额比
-    bool poolRatioRecoveryMet;               // 当前满足返回交互池的余额恢复比
+    bool poolRatioRecoveryMet;               // 当前是否满足3倍余额条件；只有activeReason=PoolRatio时才是有效回切依据
     bool canSwitch;                          // 现在调用checkAndSwitchMode是否会切换
     uint8 prospectiveReason;                 // 非Pair模式下若切换将采用的SwitchReason
 }
+
+// 返回模式切换所需的全部当前数据和判断结果。
+function getTradingModeStatus()
+    external view returns (TradingModeStatus memory status);
+
+// 返回当前是否Pair模式。
+function isPairMode() external view returns (bool);
+
+// 无权限按当前状态检查并切换模式；可由keeper直接调用，也可经Gateway调用。
+function checkAndSwitchMode() external;
+
+// 以下两个参数方法必须直接调用TradingModeController代理，不经过Gateway；不转移资产且立即生效。
+// owner只能通过setOperator更换非零operator，不能直接代替operator设置参数。
+// 四个参数范围均为0-10000基点，0是有效阈值；默认分别为700/2700/10000/3000。
+function setFlowSwitchThresholds(
+    uint256 dailyOutflowBps_,
+    uint256 sevenDayNetOutflowBps_
+) external;
+
+function setPriceRecoveryThresholds(
+    uint256 priceRecoveryBps_,
+    uint256 priceDropRecoveryBps_
+) external;
+
+// 仅owner更换控制器operator。
+function setOperator(address operator_) external;
+
+// 关键模式状态与配置读取。
+function operator() external view returns (address);
+function tradingRouter() external view returns (address); // 唯一可提交卖出流量的TradingRouter代理
+function switchedAt() external view returns (uint64);
+function switchPrice() external view returns (uint256);
+function switchTriggerUsdt() external view returns (uint256);
+function pairOutflowSinceSwitch() external view returns (uint256);
+function dailyOutflowBps() external view returns (uint256);
+function sevenDayNetOutflowBps() external view returns (uint256);
+function priceRecoveryBps() external view returns (uint256);
+function priceDropRecoveryBps() external view returns (uint256);
+```
+
+`prepareSale()` 与 `recordPairSaleAndCheck(uint256)` 是TradingRouter专用写入口，其他地址调用会回滚；前端和keeper不得调用。前者只在卖出路径确定前刷新到期窗口，后者在整笔Pair卖出完成后记录真实毛USDT流出并检查切换。
+
+### TradingRouter
+
+```solidity
 
 // 买入NCN，返回实际收到的NCN；累计买入USDT增加。
 function buyNcn(uint256 usdtAmount) external returns (uint256 ncnReceived);
@@ -694,34 +756,13 @@ function mobSellAllowance(address account)
 function remainingMobSellAllowance(address account)
     external view returns (uint256);
 
-// 返回模式切换所需的全部当前数据和判断结果。
-function getTradingModeStatus()
-    external view returns (TradingModeStatus memory status);
-
-// 返回当前是否Pair模式。
-function isPairMode() external view returns (bool);
-
-// 无权限按当前状态检查并切换模式。
-function checkAndSwitchMode() external;
-
-// 以下三个配置方法必须直接调用TradingRouter代理，不经过Gateway；不转移资产且立即生效。
-// owner只能通过setOperator更换非零operator，不能直接代替operator设置参数。
-// operator设置24小时流出和七日净流出阈值，范围0-10000基点，默认700/2700。
-// 例如700表示窗口初始池余额的7%。
-function setFlowSwitchThresholds(
-    uint256 dailyOutflowBps_,
-    uint256 sevenDayNetOutflowBps_
-) external;
-
-// operator设置价格恢复/下跌回切比例，范围0-10000基点，默认10000/3000。
-function setPriceRecoveryThresholds(
-    uint256 priceRecoveryBps_,
-    uint256 priceDropRecoveryBps_
-) external;
-
 // 设置每地址每日NCN累计考核额，范围0-50U；0关闭资格检查。
 // 仅operator调用；默认10U。参数使用USDT原始最小单位，修改后立即追溯全部历史考核天数。
 function setDailyNcnRequirement(uint256 amountUsdt) external;
+
+// 仅operator设置新用户固定20%手续费保护期，参数单位为整数小时，最小非零值为1小时，默认1680（70天）；0表示关闭。
+// 修改后按每个非旧系统用户原始firstActivationAt立即追溯生效；旧系统虚拟卡用户不适用。
+function setNewUserProtectionHours(uint256 protectionHours) external;
 
 // 仅owner直接调用TradingRouter代理，更换非零operator；不转移资产并立即生效。
 function setOperator(address operator_) external;
@@ -734,10 +775,7 @@ function setFeeWallets(address foundationWallet_, address insuranceWallet_) exte
 // 关键配置和历史累计读取。
 function operator() external view returns (address);
 function dailyNcnRequirementUsdt() external view returns (uint256);
-function dailyOutflowBps() external view returns (uint256);
-function sevenDayNetOutflowBps() external view returns (uint256);
-function priceRecoveryBps() external view returns (uint256);
-function priceDropRecoveryBps() external view returns (uint256);
+function newUserProtectionPeriod() external view returns (uint256); // 当前保护期秒数，默认70 days
 function cumulativeNcnBuyUsdt(address account) external view returns (uint256);
 function cumulativeNcnSellUsdt(address account) external view returns (uint256);
 function cumulativeMobReceived(address account) external view returns (uint256);
@@ -857,6 +895,15 @@ function importLegacyVirtualCards(
 function earningsStatus(uint256 positionId, uint64 maturedUntil)
     external view returns (EarningsStatus memory status);
 
+// 使用与consumeRange完全相同的最旧优先和已消费区间跳过规则，预览时间范围内最多maximumUsdt的消费结果。
+// 只读且不写入消费区间；UserDashboard用它对齐MiningSystem剩余出局额度裁剪。
+function previewConsumeRange(
+    uint256 positionId,
+    uint64 producedFrom,
+    uint64 producedUntil,
+    uint256 maximumUsdt
+) external view returns (uint256 baseUsdt, uint256 accelerationUsdt);
+
 // 返回当前加速本金和最近一次加速周期。
 // principalMob：当前未赎回本金；cycleStartedAt/cycleEndedAt：最近周期起止；
 // earningUntil：该周期最多产出到何时；dailyExtraUsdt：当前日加速额；earningActive：当前是否仍产出。
@@ -912,9 +959,13 @@ function miningTotals(address account)
 // MÖB到账后计入TradingRouter卖出额度。
 function claim() external returns (uint256 mobAmount, uint256 usdtAmount);
 
-// 当前普通动态奖励待领取余额。
+// 当前合并动态奖励待领余额；pendingUsdt包含已结算V3/V4手续费。
 function pendingMob(address account) external view returns (uint256);
 function pendingUsdt(address account) external view returns (uint256);
+
+// pendingUsdt中属于V3/V4卖出手续费的已结算未领取子集。
+// 降级、到期或V3/V4切换后仍保留；claim领取合并余额成功后同步清零。
+function pendingGradeSaleUsdt(address account) external view returns (uint256);
 
 // 历史实际领取总额。
 function cumulativeClaimedMob(address account) external view returns (uint256);
@@ -1037,7 +1088,7 @@ function cumulativeSaleUsdtOutflow() external view returns (uint256);
 
 // 三个当前operator配置，基点可大于10000。
 // poolToPairRatioBps：进入Pair模式的交互池/Pair余额比；
-// poolRecoveryRatioBps：返回交互池模式的余额恢复比；
+// poolRecoveryRatioBps：返回1.5倍余额原因切出后的交互池余额恢复比，不用于单日或七日流量原因；
 // pairOutflowRecoveryMultipleBps：流量触发后Pair流出恢复倍数。
 function poolToPairRatioBps() external view returns (uint256);
 function poolRecoveryRatioBps() external view returns (uint256);
@@ -1064,11 +1115,23 @@ function withdrawToken(address token, address recipient, uint256 amount) externa
 // 仅owner直接调用InteractionPool代理，更换非零operator；不转移资产并立即生效。
 function setOperator(address operator_) external;
 function operator() external view returns (address);
+function tradingMode() external view returns (address);   // TradingModeController代理
+function tradingRouter() external view returns (address); // 完整Pair卖出结束后统一提交模式检查的TradingRouter代理
 
 // owner维护业务支付白名单、Router和Pair。
 function setBusinessAuthorization(address business, bool authorized) external;
 function setUniswapRouter(address router) external;
 function setUniswapPair(address pair) external;
+
+// 仅首次组装由owner调用一次；五个地址依次为MÖB、PriceOracle、TradingModeController代理、
+// TradingRouter代理和MÖB/USDT Pair。配置后不可重复执行。
+function configureDependencies(
+    address mob_,
+    address oracle_,
+    address tradingMode_,
+    address tradingRouter_,
+    address pair_
+) external;
 ```
 
 ---
@@ -1171,9 +1234,14 @@ function maximumBranch(address account)
 function branchPerformance(address account, address directReferral)
     external view returns (uint256);
 
-// owner设置V2-V7持币要求，level必须为2-7，amountUsdt为USDT计价值。
+// 仅TeamPerformance.operator设置V2-V7持币要求；level必须为2-7，amountUsdt为USDT最小单位计价值。
+// 默认均为0，0表示关闭对应等级持币门槛；修改后在下一次业绩变化或refreshLevel时按当前Pair储备比生效。
 function setHoldingRequirement(uint8 level, uint256 amountUsdt) external;
 function holdingRequirementUsdt(uint8 level) external view returns (uint256);
+
+// 仅owner直接调用TeamPerformance代理，更换非零operator；owner不能直接设置持币门槛。
+function setOperator(address operator_) external;
+function operator() external view returns (address);
 ```
 
 ---
