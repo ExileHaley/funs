@@ -16,45 +16,45 @@
 下列地址是加入 ReferralRegistry 与 TradingModeController 独立UUPS代理之前的历史部署记录，不能用于当前源码。重新全量部署后，所有业务调用地址必须以新日志为准，并完整记录两个新增代理及implementation；正式交付前应整体替换本节，不能局部沿用历史地址。
 
 ```
-  MOB_V2_GATEWAY_PROXY 0x15117EBa9A4d29Acd4eafEE7DE50B36E30A911fA
-  INTERACTION_POOL 0x66f3a8F6d7b5cBE1221D063e734727B5Ca943D89
-  MOB 0x82361Ef05977b6B02edCF2D92B49F1fDFA48a937
-  MOB_PAIR 0x6F570234447965CcD9caA8759758e00770034686
-  NCN 0x29E528b28AF84aF0fA327118568954737F47Ed82
-  PRICE_ORACLE 0x8640dFc1b3B38d8248E0314f55C32Ce3Eb2639d3
-  REFERRAL_REGISTRY 0x395f00c6a9a58e44fbde882320508E1109f43091
-  CARD_MANAGER 0x2B0d028F90AE291f0E3352540D561fae64ED1624
-  MINING_EARNINGS_SETTLEMENT 0x02369148029ecD72e215b8AF89f271929ed9Ca10
-  MINING_EARNINGS_LEDGER 0x350750b3C73483D1FE68a0E918C164ad465e1a84
-  MINING_SYSTEM 0x19C00aAbef05348EeD5274580DBf2a4EA61846e8
-  CARD_COMPOSER 0x5e6fe484950752E9C02Cf3a26C85F67b8eeC1164
-  TRADING_ROUTER 0xAaC2257b6a2683a3115e3b55e4d14162121Da3C6
-  TRADING_MODE_CONTROLLER 0x71EDF37Bcd693A9d8DF29e5518960Ef9475CF0AB
-  USER_DASHBOARD 0x1fd4183B7a02B4Dd28c3d1B33760E06335D75138
-  REWARD_DISTRIBUTOR 0x0d2eeCf09F1c2c2CBd75CB019f0A069C2F5BBdE0
-  TEAM_PERFORMANCE 0xfa3f5a7aba53cEc82387b3b0B6881438275d4ECF
-  TEAM_ELIGIBILITY 0xDb14612f92843BAFd138f65F9852Ba3dd8e3c596
-  ORGANIZATION_BENEFIT 0x014BCe51f2cBB2d3f3D744E672f297273e96114c
-  NODE_REWARD_POOL 0xfEc36fFea82763d2eCf0B979dDbfB0B81B50e13C
-  MINING_CARD 0xD02c7F572968078B7E35700f48E02194b1a273fc
-  ORGANIZATION_CARD 0x019e6668c7e00Bf518b7F2736A6E930b07858910
-  NODE_CARD 0xDc73B5b4c63793B734DA0877EC069CD316fD11AC
-  MOB_V2_GATEWAY_IMPLEMENTATION 0xe22b8d2afE1CFe6790d70c0011d7434c207f0AbC
-  INTERACTION_POOL_IMPLEMENTATION 0xFE6a691e9daa82597BeE4b397899a7079C9DbB23
-  CARD_MANAGER_IMPLEMENTATION 0x75b49A385cd670f532A43cC642b56518F6475D92
-  ORGANIZATION_BENEFIT_IMPLEMENTATION 0xD172F1E42ecC844248270625DF64938bb436D7f9
-  NODE_REWARD_POOL_IMPLEMENTATION 0x219186aB11cDEca444ae1a690Ea00115Cb3EE351
-  REWARD_DISTRIBUTOR_IMPLEMENTATION 0xa0FcFA8d48d805e34E4B2101CD0d0eE24e26662E
-  TEAM_PERFORMANCE_IMPLEMENTATION 0xAB6dB906339E27e7823acc8b5D929E57348BEC7c
-  TEAM_ELIGIBILITY_IMPLEMENTATION 0x39698900c624378De79005f37dc4A33f4a64EF29
-  MINING_EARNINGS_SETTLEMENT_IMPLEMENTATION 0x5FbcbF836790BE6E5C48389E941dBfEdC54Dd164
-  MINING_EARNINGS_LEDGER_IMPLEMENTATION 0x85B74CDef05F8bfe84D6aFBBd7da2222c4390e24
-  MINING_SYSTEM_IMPLEMENTATION 0x8c734856F24b45155e301D043Aa72A0dCc62f0a5
-  CARD_COMPOSER_IMPLEMENTATION 0xf4d3611a8EC19f2716D8d04F95AD269D25D6665C
-  TRADING_ROUTER_IMPLEMENTATION 0x358D873B92df30181e2E78f63cEAfdf39CAFd8b0
-  USER_DASHBOARD_IMPLEMENTATION 0x6964a07B6c9F1fBB83fe8D268FE4e0ACD9F77931
-  REFERRAL_REGISTRY_IMPLEMENTATION 0xD7102F360becF1Df9b1E8C1C27744D240bdD31C3
-  TRADING_MODE_CONTROLLER_IMPLEMENTATION 0x6Dc8fD0dFD2ebeA168cB418FBC4ebe4e66E308Fc
+MOB_V2_GATEWAY_PROXY 0xdAEce9049Eaa087F07fBc574B7739C0875BB2c15
+  INTERACTION_POOL 0x0C49aD355D9271abFE1bAbAa9908223c56078CeE
+  MOB 0xfa031814c73471c81a6a50e9eC4eA6bd9886FA68
+  MOB_PAIR 0xEE68693B1e598e417D663a014Ee952118B7a7A16
+  NCN 0x3c6bb3e8c0B84feBf9ae37129b60E254e9BbcEA0
+  PRICE_ORACLE 0x9eD68B66119b2ADD90c879a600d9A683713780c4
+  REFERRAL_REGISTRY 0xFC6a58B93A4c037f99413e40F1D9980e3b53E58c
+  CARD_MANAGER 0x8b0feBacd665463607E42056dFa6784B5D332D26
+  MINING_EARNINGS_SETTLEMENT 0xF5cB7eF565A5cA72cDbe04BC3B0Da104eD00fE16
+  MINING_EARNINGS_LEDGER 0xb9e65620D0ccEa5ff79779ddCc53153e90B945B1
+  MINING_SYSTEM 0xb194030Aeeb987Ef634EB0c9b259908960C3c31a
+  CARD_COMPOSER 0x5FE0B9d7F1eE4E8c1a5c24BbDA6842c5FB2b5408
+  TRADING_ROUTER 0x91f8FB8A52654e4CB774b2A9cAe50e0c7858EFeA
+  TRADING_MODE_CONTROLLER 0x2c5A2b942268a72324f8a064D4BbC0cB33894CA1
+  USER_DASHBOARD 0x1B96052C0165B7cA78e783216db0b36581C3A9f0
+  REWARD_DISTRIBUTOR 0x4440ab23272c773108D2fb5C04127eB0eD8fccdb
+  TEAM_PERFORMANCE 0x1F172848ac4c5bf342EC600aFbAAe8A4Aac52F90
+  TEAM_ELIGIBILITY 0x7B742d7a1169CfD2eee5Ac4Eb8f066B71001E65c
+  ORGANIZATION_BENEFIT 0xFd76C3a52EB104e36820E67022e94Fa1929Ca347
+  NODE_REWARD_POOL 0x2D4F38381Fb96f47Cf9fd209A6D11815B0A443b1
+  MINING_CARD 0x77D43965499d6Cc0cAd6a62BfE9BA9d8C81F485a
+  ORGANIZATION_CARD 0xC2e61ba0F7dB5eFEC2bC9aE5D6121f0ACb0d2f34
+  NODE_CARD 0x8b99f609151171aDFaF6629cB741cE41F46B545c
+  MOB_V2_GATEWAY_IMPLEMENTATION 0xC256351f717EA083fa8502492fe9de096F3c9dB7
+  INTERACTION_POOL_IMPLEMENTATION 0x13CdaECb3F406b8Bd8262F304b2056FA1de86F7A
+  CARD_MANAGER_IMPLEMENTATION 0x8f2C589107ee7C2937b826cDc3DB61C18eCd2447
+  ORGANIZATION_BENEFIT_IMPLEMENTATION 0xD5A0943E40C7A607C8FA6bc4e1D3B5391e8d8e46
+  NODE_REWARD_POOL_IMPLEMENTATION 0x2259EE6ed78E03FD876889b260fDbC7CC37d09d6
+  REWARD_DISTRIBUTOR_IMPLEMENTATION 0x585BB5F6fD411965a8b36b90014eDF5a046c7CE8
+  TEAM_PERFORMANCE_IMPLEMENTATION 0x507eB29F44Bd4047C229a87CC187F5213D303b55
+  TEAM_ELIGIBILITY_IMPLEMENTATION 0x4abd9430869eDb623e2225E90E99AdbD5A000B7a
+  MINING_EARNINGS_SETTLEMENT_IMPLEMENTATION 0x00C9E6B486CC7221D184811f2d447dd285dE9333
+  MINING_EARNINGS_LEDGER_IMPLEMENTATION 0x5E2A5237d59EF8a681B27aA4f1fc23E968c14a26
+  MINING_SYSTEM_IMPLEMENTATION 0x5ebE268514DFB459E3050a619F2c965476F3a4b3
+  CARD_COMPOSER_IMPLEMENTATION 0x333258D2358338F34f9BD3a98E5b8cB8F5535b14
+  TRADING_ROUTER_IMPLEMENTATION 0xf28FcebcEd028129D2045Abf2c9a22B296d7e40A
+  USER_DASHBOARD_IMPLEMENTATION 0x757CbF2BAC4060eC44ba4E2C85db4d2D106da81D
+  REFERRAL_REGISTRY_IMPLEMENTATION 0xfE6Ef6102ff46338c0430CcEee1469Cf12d65E01
+  TRADING_MODE_CONTROLLER_IMPLEMENTATION 0x9De4eA3a992d8309D17AC92166F6EdFA634330Ad
 ```
 
 ## 3. 枚举
@@ -148,6 +148,7 @@ function buyNodeCard(NodeType nodeType, uint256 maxMob) external returns (uint25
 function activateMiningCard(uint256 tokenId) external returns (uint256 positionId);
 
 // 为指定仓位续缴一个30天铸币费周期。
+// 豁免地址的owner导入虚拟卡仍需调用，但支付0 USDT且不记录铸币费相关奖励；真实NFT卡不免费。
 function payMintFee(uint256 positionId) external;
 
 // 首次为指定工作仓位质押MÖB加速本金，按当前Pair价判断低档或高档。
@@ -203,6 +204,7 @@ function sellNcn(uint256 ncnAmount) external returns (uint256 usdtReceived);
 
 // 卖出MÖB，返回扣除手续费后实际收到的USDT。
 // 每次都检查NCN累计资格、工作卡单次限额和MÖB剩余卖出额度。
+// 提现豁免地址跳过NCN资格且手续费最高20%，但不跳过两类卖出限额。
 function sellMob(uint256 mobAmount) external returns (uint256 receivedUsdt);
 
 // 主动按当前业绩和持币条件刷新调用者团队等级；不是keeper方法。
@@ -211,13 +213,13 @@ function refreshMyTeamLevel() external returns (uint8 oldLevel, uint8 newLevel);
 // 无权限补充检查交易模式。没有自动检查交易发生时可由任意地址调用。
 function checkAndSwitchMode() external;
 
-// 无权限每日加LP；合约内检查24小时间隔和模式条件。
+// 无权限每日加LP；合约内检查独立24小时间隔和固定2倍池/Pair条件。
 // 返回使用的USDT、MÖB和获得的LP数量。
 function executeDailyLiquidity()
     external
     returns (uint256 usdtAmount, uint256 mobAmount, uint256 liquidity);
 
-// 无权限每日回购销毁；合约内检查24小时间隔和Pair模式。
+// 无权限每日回购销毁；Pair和交互池模式均可执行，合约内检查独立24小时间隔和固定2倍池/Pair条件。
 function executeDailyBuyback() external;
 
 // 无权限同步最多100条已到期V3/V4资格，返回本次处理数量。
@@ -625,13 +627,13 @@ struct NcnSellQualificationStatus {
     uint256 missingTotalUsdt;         // 距总交易额要求仍缺少的USDT；已满足、豁免或X=0时为0
     uint256 missingBuyUsdt;           // 距“买入严格大于要求50%”仍缺少的USDT；含最小单位+1规则
     bool qualified;                   // 当前是否满足MÖB卖出NCN资格
-    bool exempt;                      // 是否因提现豁免地址而跳过NCN资格
+    bool exempt;                      // 是否为提现豁免地址；同时跳过NCN资格并将MÖB卖出手续费封顶为20%
 }
 
 struct MobSellPreview {
     bool pairMode;                  // true使用Uniswap Pair，false由交互池报价/支付
     uint256 grossUsdt;              // 扣手续费前预计毛USDT
-    uint256 feeUsdt;                // 按当前所有条件预计扣除的USDT手续费
+    uint256 feeUsdt;                // 按当前所有条件预计扣除的USDT手续费；提现豁免地址最高为毛额20%
     uint256 receivedUsdt;           // 预计用户实收USDT=grossUsdt-feeUsdt
     uint256 workingSellLimitUsdt;   // 已激活或曾激活最高面值卡牌对应的一笔毛USDT卖出上限，不随出局降低
     uint256 cumulativeMobReceived;  // 历史实际领取并计入卖出额度的MÖB总量，不含转入或购买所得
@@ -738,7 +740,7 @@ function sellNcn(uint256 ncnAmount) external returns (uint256 usdtReceived);
 // 所有资格、手续费、销毁、奖励和模式检查在同一交易内原子执行。
 function sellMob(uint256 mobAmount) external returns (uint256 receivedUsdt);
 
-// 完整预览MÖB卖出。覆盖20%-70%手续费、保护额度分段和三项前置资格。
+// 完整预览MÖB卖出。覆盖以最近一次Pair切换价格为基准、回切交互池后仍连续适用的20%-70%手续费、豁免地址20%封顶、保护额度分段和三项前置资格。
 // 预览不锁价，实际交易可能因Pair储备或状态变化略有差异。
 function previewSellMob(address seller, uint256 mobAmount)
     external view returns (MobSellPreview memory preview);
@@ -792,7 +794,7 @@ function historicalReceivedUsdt(address account) external view returns (uint256)
 // 直接激活矿机卡，返回positionId。
 function activate(uint256 tokenId) external returns (uint256 positionId);
 
-// 直接续缴指定仓位铸币费。
+// 直接续缴指定仓位铸币费。豁免地址的owner导入虚拟卡支付0 USDT并增加30天；真实NFT卡正常收费。
 function payMintFee(uint256 positionId) external;
 
 // 直接质押、升级和赎回加速本金。
@@ -813,6 +815,7 @@ function positionConsumedTotals(uint256 positionId)
 // 查询五类矿机卡中指定类型的当前工作/质押中数量和累计出局数量；这是全局O(1)计数，不遍历卡牌。
 // workingTotal/exitedTotal：包含真实NFT和导入的虚拟卡；
 // workingNft/exitedNft：仅真实NFT；workingVirtual/exitedVirtual：仅虚拟卡。
+// 用户确认的5张特殊U3000虚拟卡永久不计入上述六个展示字段，其他业务记录不变。
 // 注意：这是MiningSystem直接查询，不经过UserDashboard；工作中即当前已激活且未出局。
 function miningCardTypeStats(MiningCardType cardType)
     external view
@@ -824,6 +827,9 @@ function miningCardTypeStats(MiningCardType cardType)
         uint256 exitedNft,
         uint256 exitedVirtual
     );
+
+// 查询指定仓位是否被专用导入入口永久排除在类型展示统计之外。
+function cardTypeStatsExcluded(uint256 positionId) external view returns (bool);
 
 // 返回指定positionId的仓位字段；字段定义见UserDashboard.Position。
 function positions(uint256 positionId)
@@ -868,7 +874,8 @@ function accelerationClosedAt() external view returns (uint64);
 // owner设置全局成熟秒数，必须大于0，修改后立即作用于全部未消费收益。
 function setMaturityDelay(uint256 newDelay) external;
 
-// owner每批最多100个地址设置或取消成熟期/NCN资格豁免。
+// owner每批最多100个地址设置或取消成熟期/NCN资格豁免、MÖB卖出手续费20%封顶，
+// 以及owner导入虚拟卡的0 USDT续费资格。
 function setWithdrawalExemptions(address[] calldata accounts, bool exempt) external;
 
 // owner永久关闭加速；关闭后不能重新开启或新增质押，原本金仍可赎回。
@@ -877,6 +884,14 @@ function closeAccelerationPermanently() external;
 // owner每批最多100条导入旧虚拟矿机卡。
 // remainingUsdt是每张卡剩余可领取USDT计价值，不是已领取金额。
 function importLegacyVirtualCards(
+    address[] calldata accounts,
+    MiningCardType[] calldata cardTypes,
+    uint256[] calldata remainingUsdt
+) external;
+
+// 仅owner依据用户确认的特殊批次调用；卡牌业务完整导入，但永久不计入miningCardTypeStats。
+// 生产脚本只对data/legacy-cards/batch-031.json调用此方法，普通前端不得调用。
+function importLegacyVirtualCardsExcludedFromTypeStats(
     address[] calldata accounts,
     MiningCardType[] calldata cardTypes,
     uint256[] calldata remainingUsdt
@@ -975,6 +990,9 @@ function cumulativeClaimedUsdt(address account) external view returns (uint256);
 function cumulativeRewardByKind(address account, RewardKind kind)
     external view returns (uint256);
 
+// 层级奖励钱包MÖB最低持有价值，单位为整U；当前固定为30，按Pair即时储备比估值。
+function MIN_HOLDING_USDT() external view returns (uint256);
+
 // 历史有效直属数：直属首次激活/导入后永久增加一次。
 function effectiveDirectReferralCount(address account) external view returns (uint256);
 
@@ -1072,13 +1090,13 @@ function operator() external view returns (address);
 ### InteractionPool
 
 ```solidity
-// 无权限每日添加流动性，内部检查24小时间隔和池/Pair条件。
+// 无权限每日添加流动性，内部检查独立24小时间隔和固定2倍池/Pair条件。
 // 成功后自动检查交易模式。
 function executeDailyLiquidity()
     external
     returns (uint256 usdtAmount, uint256 mobAmount, uint256 liquidity);
 
-// 无权限Pair模式每日回购销毁，内部检查24小时间隔。
+// 无权限每日回购销毁，Pair和交互池模式均可执行，内部检查独立24小时间隔和固定2倍池/Pair条件。
 // 成功后自动检查交易模式。
 function executeDailyBuyback() external;
 
@@ -1314,8 +1332,14 @@ function transfer(address recipient, uint256 amount) external returns (bool);
 function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
 function decimals() external view returns (uint8);
 
-// 无权限每日销毁Pair当前MÖB余额的1%，内部检查24小时间隔。
+// 无权限销毁Pair当前MÖB余额的1%。周期从部署时间起按固定86400秒倍数推进；
+// 错过多个周期时单次仍只销毁一次1%，不会补销毁。
 function burnPairBalance() external;
+
+// 最近已经消费的固定24小时周期边界，以及固定周期秒数86400。
+// 下一次允许执行时间为lastPairBurnAt + PAIR_BURN_INTERVAL。
+function lastPairBurnAt() external view returns (uint256);
+function PAIR_BURN_INTERVAL() external view returns (uint256);
 
 // TradingRouter专用：成功卖出时销毁对应Pair余额；普通用户不能调用。
 function burnSoldPairBalance(uint256 soldAmount) external;
