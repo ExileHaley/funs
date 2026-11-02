@@ -16,45 +16,45 @@
 下列地址是加入 ReferralRegistry 与 TradingModeController 独立UUPS代理之前的历史部署记录，不能用于当前源码。重新全量部署后，所有业务调用地址必须以新日志为准，并完整记录两个新增代理及implementation；正式交付前应整体替换本节，不能局部沿用历史地址。
 
 ```
-  MOB_V2_GATEWAY_PROXY 0xCb7a1B0E75F62084E75271b9d21F1625b288D37E
-  INTERACTION_POOL 0x0B1fB4753E538bc22fa48249fb060803dEe11729
-  MOB 0x5022e57dBcd5Be91916Be62fd63aC0a5351990FE
-  MOB_PAIR 0x44bA56802467EEFD5D207e493ca191BCe31BDBcF
-  NCN 0x5aA4e252645650a4B76f72Eb48f25b81B8d43dB3
-  PRICE_ORACLE 0x5B0cc86ba43dBD69E6994d22206eCcdE0Ab13331
-  REFERRAL_REGISTRY 0x93F6BE3F4454856fF899027E0Ee19584A6cac83C
-  CARD_MANAGER 0x22BDB89a79A2db5302b82572d72EC498efCb63dC
-  MINING_EARNINGS_SETTLEMENT 0x67aC24Ff30714D48f323D8B021328867C65873E0
-  MINING_EARNINGS_LEDGER 0x15D6cfafBFacFC8e2C5D105345039f0CA3B9C434
-  MINING_SYSTEM 0x7bD0E9cF59ead940B3D3bf7f40e5c8A60604CE3f
-  CARD_COMPOSER 0x2695650BefE139f76fa02962bda30689debC4880
-  TRADING_ROUTER 0x962BEBE29FA3c3ED8fdF9278A47Df87f5cFCA4E6
-  TRADING_MODE_CONTROLLER 0x9E5E1fC3FE70BA08F88894E87eAe479FcE3A5fE1
-  USER_DASHBOARD 0xaa29Cb87082b1A3Afcbb79FCb84D6436e23b614f
-  REWARD_DISTRIBUTOR 0xBe3Bc849803f917fc769A4949da8dd2B969dd509
-  TEAM_PERFORMANCE 0xFba91Cdb33Ff635A7966Afc4BE9d9CE7be9Fd546
-  TEAM_ELIGIBILITY 0xb689E5441f9279961EeB70FF2F1f7cDd1b360E41
-  ORGANIZATION_BENEFIT 0xdD87D922657c03d478a6f6130D4D79Ece5dEB411
-  NODE_REWARD_POOL 0x270E4c613100B1E97cFbDc5db513bffF03Cd2Ea4
-  MINING_CARD 0x1acB7E930Ef0d1F9c2Fe62D37Ad079588826CA12
-  ORGANIZATION_CARD 0x24613BF00b5aE36a7cF9fb6942B6B01b8B3352D2
-  NODE_CARD 0xF4e3E72D1B82bA622889c4591338C8f5c01379c4
-  MOB_V2_GATEWAY_IMPLEMENTATION 0x6E135a1cB5f70a66F23AF75c500187CD4185af2f
-  INTERACTION_POOL_IMPLEMENTATION 0x03E034De72dd2BA665fd3C6761A5934164BD6C14
-  CARD_MANAGER_IMPLEMENTATION 0x930aca3eA8E6048E32b77604842FcfAd029AF491
-  ORGANIZATION_BENEFIT_IMPLEMENTATION 0xa6cc8bf1C109D1aCD036be1c748F9bc906327Bf4
-  NODE_REWARD_POOL_IMPLEMENTATION 0x8C2832210b00C83fC62C3d0CEbac1845aF4322CA
-  REWARD_DISTRIBUTOR_IMPLEMENTATION 0xB01b3F6c574283D2eD95e74D966B49Ea9e1Fd5Be
-  TEAM_PERFORMANCE_IMPLEMENTATION 0xBA209d1ABbD4bF716EdaD1B4A24430d400095347
-  TEAM_ELIGIBILITY_IMPLEMENTATION 0x25a2Cf7D7f3DA5B69d24b1e419257DC5D5b3D6Cd
-  MINING_EARNINGS_SETTLEMENT_IMPLEMENTATION 0x5A9a2C02ADDeF867A0Cf57b370D8f4d858c3F3A5
-  MINING_EARNINGS_LEDGER_IMPLEMENTATION 0xc9FD6c440DaFafc37892aDa07860E57F2CE35418
-  MINING_SYSTEM_IMPLEMENTATION 0x33ab9DF9fE7414DB0B83251207AE3E25BBf801a3
-  CARD_COMPOSER_IMPLEMENTATION 0xEA559CAB1DF2007944b0D01191F5fA31c75815ec
-  TRADING_ROUTER_IMPLEMENTATION 0x302f9C82340aDE6807F9d6748a6955077781f8a3
-  USER_DASHBOARD_IMPLEMENTATION 0x28828735ef2d2b63b643e60A07FA4Fc6b7F3BcA5
-  REFERRAL_REGISTRY_IMPLEMENTATION 0xED2D85a5dff60a6656F8b5193606A1C354454F83
-  TRADING_MODE_CONTROLLER_IMPLEMENTATION 0x22f954170c3D44463D9564059658001d22D29716
+MOB_V2_GATEWAY_PROXY 0x4B70e17c5Bd9Ba82cdC336Cf34A9B0B4AAB73F0c
+  INTERACTION_POOL 0x3d6f3E5A35F1ee7c30F4a4850d4eFFCe4784B220
+  MOB 0xf953BBCe0af0D6272cB61859145edB8348d5D7cC
+  MOB_PAIR 0xeBe70838fD763839dc1A4af621F1a6b8C7E24F50
+  NCN 0x05Ed48D1d08c4b4E27817abe8D08f6A36B255657
+  PRICE_ORACLE 0x08E6C70EC99721265ef0C59338916Cf8C9c40f60
+  REFERRAL_REGISTRY 0xD65B04a11916FA2aA8Cde4eFCd27cbF96cdf4192
+  CARD_MANAGER 0xe14118c12bC280A787B4deA039712482F8272CB9
+  MINING_EARNINGS_SETTLEMENT 0x895D698b933e5C581CDdf42130F4339E7ceE1c72
+  MINING_EARNINGS_LEDGER 0x39D2C17811675d5cE0542FE3b9818921f7D70f7A
+  MINING_SYSTEM 0xb98F51A34167C16B93156726F9FFF0884d7d518a
+  CARD_COMPOSER 0x0C48436f3Fbccf796771Fc851BA0f0Df8D33b977
+  TRADING_ROUTER 0x6CF31888f776C93dBA0d6913191e3c641C91312e
+  TRADING_MODE_CONTROLLER 0xf7Cc5C83BE870331BC043BF9DEd6C395315E9543
+  USER_DASHBOARD 0x9261F91b48c81bd77cfb3737536E2176AfdeA943
+  REWARD_DISTRIBUTOR 0xbC5B63aBf8E9bC85340ca9347d5bd662B4f38E94
+  TEAM_PERFORMANCE 0xf01Bb9168663916295Ee290646bc7fdD542049Aa
+  TEAM_ELIGIBILITY 0x6586bBA7E5C31dB4B1024dcB3E237A7137077AE5
+  ORGANIZATION_BENEFIT 0xC7daAd57fa1f3CF405A56660797E390F6c9f8220
+  NODE_REWARD_POOL 0x175BC0F0adD637bed754c62512f24E56FD417C45
+  MINING_CARD 0x879Ff7cA2300789d89654f3185C6f9564e057EbF
+  ORGANIZATION_CARD 0x3A9169dA79229d591CD6DFfB08fF21d48254A0D9
+  NODE_CARD 0xe76a606b9a272044727F95E2dB9731b0FdDf2101
+  MOB_V2_GATEWAY_IMPLEMENTATION 0x7B16B01A3eCdf1aA73b8DF3886FF15D8FA8D0748
+  INTERACTION_POOL_IMPLEMENTATION 0x8f212cf34C5E4d79565b3D83c9D289C95f0D72FB
+  CARD_MANAGER_IMPLEMENTATION 0xf3A2ea0DE639b33E5c3988d4B3913643Da67Fb97
+  ORGANIZATION_BENEFIT_IMPLEMENTATION 0xa274ac89B5887FD6e220cCB174E691daDb52cC1F
+  NODE_REWARD_POOL_IMPLEMENTATION 0x8C07e18f25B8a034BA0BAc4739E4dd0a532E3De6
+  REWARD_DISTRIBUTOR_IMPLEMENTATION 0x41014C13B88F2a9A151D6Db6d230f5ccB1C6324B
+  TEAM_PERFORMANCE_IMPLEMENTATION 0xE3Dbf2c1C7438F4AA5DD7b8889C2791fc3E88544
+  TEAM_ELIGIBILITY_IMPLEMENTATION 0x80aB02846e0392378f7E25ee3063efce5AAFF8B7
+  MINING_EARNINGS_SETTLEMENT_IMPLEMENTATION 0x7069775045D9A03Dc0096C2a0663FA07cf624c64
+  MINING_EARNINGS_LEDGER_IMPLEMENTATION 0x59A03E39c70Fc35b3d3da91b99a1447C3f4B458D
+  MINING_SYSTEM_IMPLEMENTATION 0xa242FA92368c3459e005ab110411De249c52700F
+  CARD_COMPOSER_IMPLEMENTATION 0x83244F0D1B4964Ed5B9d8a21ab8c78d07d2c05A6
+  TRADING_ROUTER_IMPLEMENTATION 0x0FF388fAFd35FaF5a6ff7E9bbC23B49ec04e83DD
+  USER_DASHBOARD_IMPLEMENTATION 0x448f9194cEB1ce8d30B384c3Fd735425f591BC19
+  REFERRAL_REGISTRY_IMPLEMENTATION 0x7e5c8589b9Ad1ba03B4557573E8be0e507a80c8D
+  TRADING_MODE_CONTROLLER_IMPLEMENTATION 0x1c60e14378f8e8ea198B8Be7B9De10F5eA80E6A3
 ```
 
 ## 3. 枚举
@@ -269,7 +269,7 @@ struct UserOverview {
     uint256 registrationAt;                // 首张真实卡激活或首张虚拟卡导入时间，Unix秒；也是NCN考核起点
     uint256 directReferralCount;           // 已永久绑定的直属地址总数，不要求直属已激活
     uint256 effectiveDirectReferralCount;  // 历史有效直属数；直属首次激活/导入后永久计数一次
-    uint256 subtreeMintFeePaidUsdt;         // 伞下最多15层历史完整铸币费支付总额；不含本人，不是待领奖励
+    uint256 subtreeMintFeePaidUsdt;         // 按每笔支付时共享层数累计的伞下历史完整铸币费；不含本人，不是待领奖励
     uint256 workingCardCount;               // 当前未出局工作卡数量
     uint256 totalCardCount;                 // 历史仓位总数，包含工作、出局、真实和虚拟卡
     uint256 exitedCardCount;                // 历史已出局仓位数量
@@ -815,7 +815,7 @@ function positionConsumedTotals(uint256 positionId)
 // 查询五类矿机卡中指定类型的当前工作/质押中数量和累计出局数量；这是全局O(1)计数，不遍历卡牌。
 // workingTotal/exitedTotal：包含真实NFT和导入的虚拟卡；
 // workingNft/exitedNft：仅真实NFT；workingVirtual/exitedVirtual：仅虚拟卡。
-// 用户确认的5张特殊U3000虚拟卡永久不计入上述六个展示字段，其他业务记录不变。
+// 用户确认的5张特殊U1000虚拟卡永久不计入上述六个展示字段，其他业务记录不变。
 // 注意：这是MiningSystem直接查询，不经过UserDashboard；工作中即当前已激活且未出局。
 function miningCardTypeStats(MiningCardType cardType)
     external view
@@ -996,7 +996,7 @@ function MIN_HOLDING_USDT() external view returns (uint256);
 // 历史有效直属数：直属首次激活/导入后永久增加一次。
 function effectiveDirectReferralCount(address account) external view returns (uint256);
 
-// 伞下最多15层用户历史完整铸币费支付总额。
+// 伞下按每笔支付发生时ReferralRegistry.referralDepth统计的历史完整铸币费支付总额。
 // 包含每笔交互池部分+基金会部分，不含本人支付，不是奖励余额。
 function subtreeMintFeePaidUsdt(address account) external view returns (uint256);
 
@@ -1176,9 +1176,24 @@ function directReferralAt(address account, uint256 index) external view returns 
 function getDirectReferrals(address account, uint256 offset, uint256 limit)
     external view returns (address[] memory accounts);
 
-// 返回最多depth层上级；业务规则通常使用depth=15。
+// 返回调用方指定的最多depth层上级；该只读辅助参数不修改全局业务层数。
 function getUplines(address account, uint256 depth)
     external view returns (address[] memory uplines);
+
+// 当前统一邀请业务层数。初始50；组织权益、团队奖励/业绩、伞下铸币费累计和三类NFT转账共用。
+function referralDepth() external view returns (uint256);
+
+// 固定参数边界与初始值。
+function MIN_REFERRAL_DEPTH() external view returns (uint256); // 1
+function MAX_REFERRAL_DEPTH() external view returns (uint256); // 100
+function DEFAULT_REFERRAL_DEPTH() external view returns (uint256); // 50
+
+// 仅当前operator修改统一邀请业务层数；必须为1-100，立即影响后续操作，不重算历史奖励。
+function setReferralDepth(uint256 newDepth) external;
+
+// 仅owner更换非零operator；owner不能直接代替operator设置层数。
+function setOperator(address operator_) external;
+function operator() external view returns (address);
 
 // 不可修改的首码地址。
 function rootCode() external view returns (address);
@@ -1251,6 +1266,9 @@ function maximumBranch(address account)
 // 指定直属分区当前业绩。
 function branchPerformance(address account, address directReferral)
     external view returns (uint256);
+
+// 指定矿机仓位增加业绩时记录的邀请层数；仓位出局时按该值对称扣回，扣回后清零。
+function contributionDepth(uint256 positionId) external view returns (uint256);
 
 // 仅TeamPerformance.operator设置V2-V7持币要求；level必须为2-7，amountUsdt为USDT最小单位计价值。
 // 默认均为0，0表示关闭对应等级持币门槛；修改后在下一次业绩变化或refreshLevel时按当前Pair储备比生效。
@@ -1385,7 +1403,7 @@ function transferFrom(address from, address to, uint256 tokenId) external;
 function safeTransferFrom(address from, address to, uint256 tokenId) external;
 ```
 
-三类卡牌的转账规则一致：铸造到用户钱包不检查邀请链；普通钱包之间转移时，接收人必须在发送人伞下最多15层内，禁止转给上级、旁系或伞下之外地址。MiningCard进入MiningSystem、OrganizationCard进入OrganizationBenefit、NodeCard进入NodeRewardPool分别是唯一的系统质押/激活放行路径；三类卡牌进入对应系统后均永久锁定。
+三类卡牌的转账规则一致：铸造到用户钱包不检查邀请链；普通钱包之间转移时，接收人必须位于发送人伞下当前 `ReferralRegistry.referralDepth` 层数内，初始50、operator可在1至100内修改，禁止转给上级、旁系或当前范围之外地址。修改后立即作用于后续转账。MiningCard进入MiningSystem、OrganizationCard进入OrganizationBenefit、NodeCard进入NodeRewardPool分别是唯一的系统质押/激活放行路径；三类卡牌进入对应系统后均永久锁定。
 
 // 以下配置方法仅由部署owner调用一次，配置后不可重复配置。
 function configureTransferRules(address referrals, address miningSystem) external;
